@@ -1,0 +1,23 @@
+{
+  "name": "portfolio-v3-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy --all",
+    "diff": "cdk diff",
+    "test": "jest"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.260.0",
+    "constructs": "10.6.0",
+    "source-map-support": "0.5.21"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.32",
+    "aws-cdk": "2.1128.1",
+    "ts-node": "10.9.2",
+    "typescript": "5.8.3"
+  }
+}
