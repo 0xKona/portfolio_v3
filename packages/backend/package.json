@@ -5,8 +5,11 @@
   "scripts": {
     "build": "tsc",
     "synth": "cdk synth",
-    "deploy": "cdk deploy --all",
     "diff": "cdk diff",
+    "deploy:test": "cdk deploy --all --context stage=test --require-approval never",
+    "deploy:prod": "cdk deploy --all --context stage=prod --require-approval broadening",
+    "destroy:test": "cdk destroy --all --context stage=test --force",
+    "destroy:prod": "cdk destroy --all --context stage=prod --force",
     "test": "jest"
   },
   "dependencies": {

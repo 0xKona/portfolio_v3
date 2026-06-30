@@ -9,8 +9,11 @@
     "lint": "npm run lint --workspace=packages/frontend",
     "test": "npm run test --workspaces --if-present",
     "synth": "npm run synth --workspace=packages/backend",
-    "deploy": "npm run deploy --workspace=packages/backend",
-    "diff": "npm run diff --workspace=packages/backend"
+    "diff": "npm run diff --workspace=packages/backend",
+    "deploy:test": "npm run build && npm run deploy:test --workspace=packages/backend",
+    "deploy:prod": "npm run build && npm run deploy:prod --workspace=packages/backend",
+    "destroy:test": "npm run destroy:test --workspace=packages/backend",
+    "destroy:prod": "npm run destroy:prod --workspace=packages/backend"
   },
   "workspaces": [
     "packages/*"

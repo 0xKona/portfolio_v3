@@ -1,0 +1,10 @@
+{
+  "hosted-zone:account=202533526081:domainName=konarobinson.com:region=us-east-1": {
+    "Id": "/hostedzone/Z09582142VD4YUGH87SHE",
+    "Name": "konarobinson.com."
+  },
+  "hosted-zone:account=202533526081:domainName=konarobinson.com:region=eu-west-2": {
+    "Id": "/hostedzone/Z09582142VD4YUGH87SHE",
+    "Name": "konarobinson.com."
+  }
+}

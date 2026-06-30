@@ -1,19 +1,36 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
-import { BackendStack } from "../lib/backend-stack";
-import { HostingStack } from "../lib/hosting-stack";
+import { BackendStack } from "../lib/stacks/backend-stack";
+import { CertificateStack } from "../lib/stacks/certificate-stack";
+import { HostingStack } from "../lib/stacks/hosting-stack";
+import { applyTags } from "../lib/tags";
 
 const app = new cdk.App();
 
-const env = {
-  account: process.env.CDK_DEFAULT_ACCOUNT,
-  region: process.env.CDK_DEFAULT_REGION ?? "eu-west-2",
-};
+applyTags(app);
 
-const backend = new BackendStack(app, "BackendStack", { env });
+const account = process.env.CDK_DEFAULT_ACCOUNT;
+const region = process.env.CDK_DEFAULT_REGION ?? "eu-west-2";
+const domainName = "v3test.konarobinson.com";
+const hostedZoneDomain = "konarobinson.com";
+
+const backend = new BackendStack(app, "BackendStack", {
+  env: { account, region },
+});
+
+const cert = new CertificateStack(app, "CertificateStack", {
+  env: { account, region: "us-east-1" },
+  crossRegionReferences: true,
+  domainName,
+  hostedZoneDomain,
+});
 
 new HostingStack(app, "HostingStack", {
-  env,
+  env: { account, region },
+  crossRegionReferences: true,
   backend,
+  certificate: cert.certificate,
+  domainName,
+  hostedZoneDomain,
 });
