@@ -8,7 +8,8 @@ export interface SiteCertificateProps {
 }
 
 /**
- * ACM certificate with DNS validation. Deployed in us-east-1 for CloudFront compatibility.
+ * ACM certificate with DNS validation. Must be deployed in us-east-1
+ * (enforced by CertificateStack's env) for CloudFront compatibility.
  */
 export class SiteCertificate extends Construct {
   public readonly certificate: acm.Certificate;
@@ -19,6 +20,7 @@ export class SiteCertificate extends Construct {
     this.certificate = new acm.Certificate(this, "Certificate", {
       domainName: props.domainName,
       validation: acm.CertificateValidation.fromDns(props.hostedZone),
+      certificateName: props.domainName,
     });
   }
 }

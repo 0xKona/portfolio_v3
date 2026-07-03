@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import { Construct } from "constructs";
-import { SiteCertificate } from "../constructs/hosting-stack/site-certificate";
+import { SiteCertificate } from "../constructs/certificate-stack/site-certificate";
 
 export interface CertificateStackProps extends cdk.StackProps {
   domainName: string;
