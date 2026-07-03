@@ -19,10 +19,7 @@ new BackendStack(app, "BackendStack", {
   env: { account, region },
 });
 
-// ACM cert for CloudFront must be in us-east-1. crossRegionReferences lets
-// FrontendStack (app region) consume it. If the cert is ever replaced
-// (domain/SAN change), let CertificateStack finish deploying before
-// FrontendStack to avoid a stale cross-region export.
+// ACM cert for CloudFront must be in us-east-1.
 const cert = new CertificateStack(app, "CertificateStack", {
   env: { account, region: "us-east-1" },
   crossRegionReferences: true,
