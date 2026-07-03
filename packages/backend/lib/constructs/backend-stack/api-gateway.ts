@@ -13,6 +13,7 @@ import { resourceName } from "../../naming";
 export interface ApiGatewayProps {
   userPool: cognito.IUserPool;
   table: dynamodb.ITable;
+  bucketName: string;
 }
 
 /** REST API with Cognito authorizer and VTL direct-to-DynamoDB integrations. */
@@ -187,6 +188,7 @@ export class ApiGateway extends Construct {
       description: "Leaderboard POST handler",
       architecture: lambda.Architecture.ARM_64,
       timeout: cdk.Duration.seconds(10),
+      environment: { TABLE_NAME: props.table.tableName },
     });
     props.table.grantReadWriteData(leaderboardFn);
 
@@ -196,8 +198,19 @@ export class ApiGateway extends Construct {
       description: "Image upload presigned URL generator",
       architecture: lambda.Architecture.ARM_64,
       timeout: cdk.Duration.seconds(10),
+      environment: {
+        TABLE_NAME: props.table.tableName,
+        BUCKET_NAME: props.bucketName,
+      },
     });
     props.table.grantReadWriteData(imageUploadUrlFn);
+    // Grant S3 PutObject for presigned URL generation on raw/ prefix.
+    imageUploadUrlFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:PutObject"],
+        resources: [`arn:aws:s3:::${props.bucketName}/raw/*`],
+      })
+    );
 
     // --- 3.6: POST /api/projects (Cognito auth) ---
     projectsResource.addMethod(

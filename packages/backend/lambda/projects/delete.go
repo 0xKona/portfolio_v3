@@ -1,8 +1,3 @@
-// DELETE /api/projects/{id} — deletes a project and its S3 assets.
-// 1. Deletes the DynamoDB record (returns 404 if it doesn't exist).
-// 2. Batch-deletes all S3 objects under raw/<id>/ and processed/<id>/.
-//    S3 cleanup is best-effort — if it fails, orphans are caught by the
-//    weekly cleanup Lambda (step 7).
 package main
 
 import (

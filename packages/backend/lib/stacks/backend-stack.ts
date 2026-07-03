@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 import { Database } from "../constructs/backend-stack/database";
 import { Auth } from "../constructs/backend-stack/auth";
 import { ApiGateway } from "../constructs/backend-stack/api-gateway";
+import { resourceName } from "../naming";
 
 export class BackendStack extends cdk.Stack {
   public readonly database: Database;
@@ -17,6 +18,7 @@ export class BackendStack extends cdk.Stack {
     this.apiGateway = new ApiGateway(this, "ApiGateway", {
       userPool: this.auth.userPool,
       table: this.database.table,
+      bucketName: resourceName(this, "static-site"),
     });
   }
 }

@@ -1,7 +1,3 @@
-// PUT /api/projects/{id} — updates an existing project.
-// Only fields provided in the request body are updated.
-// Manages GSI2 sparse index: adds GSI2PK/GSI2SK when isFeatured=true AND
-// status="published", removes them otherwise.
 package main
 
 import (
