@@ -5,6 +5,7 @@ import { Auth } from "../constructs/backend-stack/auth";
 import { ApiGateway } from "../constructs/backend-stack/api-gateway";
 import { ImagePipeline } from "../constructs/backend-stack/image-pipeline";
 import { InvalidationPipeline } from "../constructs/backend-stack/invalidation-pipeline";
+import { Cleanup } from "../constructs/backend-stack/cleanup";
 import { resourceName } from "../naming";
 
 export interface BackendStackProps extends cdk.StackProps {
@@ -36,6 +37,10 @@ export class BackendStack extends cdk.Stack {
     new InvalidationPipeline(this, "InvalidationPipeline", {
       table: this.database.table,
       domainName: props.domainName,
+    });
+    new Cleanup(this, "Cleanup", {
+      table: this.database.table,
+      bucketName,
     });
   }
 }
