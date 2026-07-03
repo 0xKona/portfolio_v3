@@ -177,6 +177,7 @@ export class ApiGateway extends Construct {
       description: "Projects POST/PUT/DELETE handler",
       architecture: lambda.Architecture.ARM_64,
       timeout: cdk.Duration.seconds(10),
+      environment: { TABLE_NAME: props.table.tableName },
     });
     props.table.grantReadWriteData(projectsFn);
 
