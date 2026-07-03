@@ -1,0 +1,11 @@
+## GetItem for a project's image processing status.
+## Uses the projectId path parameter to look up the project record.
+## Only needs the imageProcessed field, but GetItem returns the whole item.
+## Auth: Cognito (enforced at the method level, not in VTL).
+{
+  "TableName": "$stageVariables.tableName",
+  "Key": {
+    "PK": { "S": "PROJECT#$input.params('projectId')" },
+    "SK": { "S": "PROJECT#$input.params('projectId')" }
+  }
+}

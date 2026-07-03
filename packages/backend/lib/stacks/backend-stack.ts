@@ -16,6 +16,7 @@ export class BackendStack extends cdk.Stack {
     this.auth = new Auth(this, "Auth");
     this.apiGateway = new ApiGateway(this, "ApiGateway", {
       userPool: this.auth.userPool,
+      table: this.database.table,
     });
   }
 }

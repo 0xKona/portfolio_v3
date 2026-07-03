@@ -1,0 +1,13 @@
+## Query GSI1 for all leaderboard scores.
+## GSI1PK = "GAMESCORE" returns all score records.
+## ScanIndexForward: false → newest first (GSI1SK is createdAt ISO string).
+## No filter needed — all scores are public.
+{
+  "TableName": "$stageVariables.tableName",
+  "IndexName": "GSI1",
+  "KeyConditionExpression": "GSI1PK = :pk",
+  "ExpressionAttributeValues": {
+    ":pk": { "S": "GAMESCORE" }
+  },
+  "ScanIndexForward": false
+}

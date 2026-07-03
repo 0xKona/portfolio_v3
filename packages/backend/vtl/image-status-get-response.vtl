@@ -1,0 +1,17 @@
+## Return the image processing status for a project.
+## The dashboard polls this endpoint until imageProcessed = true.
+## If the project doesn't exist, return 404.
+#set($item = $input.path('$.Item'))
+#if($item == "" || $item.PK == "")
+  #set($context.responseOverride.status = 404)
+  {"message": "Project not found"}
+#else
+  {
+    "projectId": "$item.id.S",
+    #if($item.imageProcessed && $item.imageProcessed.BOOL)
+    "imageProcessed": true
+    #else
+    "imageProcessed": false
+    #end
+  }
+#end

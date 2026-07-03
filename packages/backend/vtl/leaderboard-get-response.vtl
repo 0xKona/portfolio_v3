@@ -1,0 +1,21 @@
+## Transform DynamoDB Query response into a clean JSON array of scores.
+## Fields: id, playerName, score, multiplier, finalScore, game, createdAt, updatedAt.
+#set($items = $input.path('$.Items'))
+[
+#foreach($item in $items)
+  {
+    "id": "$item.id.S",
+    "playerName": "$item.playerName.S",
+    "score": "$item.score.S",
+    "multiplier": "$item.multiplier.S",
+    "finalScore": "$item.finalScore.S",
+    #if($item.game && $item.game.S != "")
+    "game": "$item.game.S",
+    #else
+    "game": null,
+    #end
+    "createdAt": "$item.createdAt.S",
+    "updatedAt": "$item.updatedAt.S"
+  }#if($foreach.hasNext),#end
+#end
+]

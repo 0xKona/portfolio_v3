@@ -1,0 +1,10 @@
+## GetItem for a single project by its ID.
+## PK and SK are both "PROJECT#<id>" (single-table design — PK=SK for top-level entities).
+## $input.params('id') extracts the {id} path parameter from the URL.
+{
+  "TableName": "$stageVariables.tableName",
+  "Key": {
+    "PK": { "S": "PROJECT#$input.params('id')" },
+    "SK": { "S": "PROJECT#$input.params('id')" }
+  }
+}

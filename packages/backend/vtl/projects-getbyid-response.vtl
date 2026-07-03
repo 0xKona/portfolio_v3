@@ -1,0 +1,37 @@
+## Transform DynamoDB GetItem response into a single project JSON object.
+## If the item doesn't exist, DynamoDB returns an empty object (no "Item" key).
+## We check for that and return a 404-style response.
+#set($item = $input.path('$.Item'))
+#if($item == "" || $item.id == "")
+  #set($context.responseOverride.status = 404)
+  {"message": "Project not found"}
+#else
+  {
+    "id": "$item.id.S",
+    "name": "$item.name.S",
+    #if($item.desc && $item.desc.S != "")
+    "desc": "$item.desc.S",
+    #else
+    "desc": null,
+    #end
+    "skills": [
+      #foreach($skill in $item.skills.L)
+        "$skill.S"#if($foreach.hasNext),#end
+      #end
+    ],
+    #if($item.githubUrl && $item.githubUrl.S != "")
+    "githubUrl": "$item.githubUrl.S",
+    #else
+    "githubUrl": null,
+    #end
+    #if($item.demoUrl && $item.demoUrl.S != "")
+    "demoUrl": "$item.demoUrl.S",
+    #else
+    "demoUrl": null,
+    #end
+    "isFeatured": $item.isFeatured.BOOL,
+    "status": "$item.status.S",
+    "createdAt": "$item.createdAt.S",
+    "updatedAt": "$item.updatedAt.S"
+  }
+#end

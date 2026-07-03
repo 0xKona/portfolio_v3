@@ -1,0 +1,19 @@
+## Query GSI1 for all published projects.
+## GSI1PK = "PROJECT" returns all project records.
+## FilterExpression removes drafts — only published projects reach the client.
+## ScanIndexForward: false → newest first (GSI1SK is createdAt ISO string).
+## "status" is a DynamoDB reserved word, so we alias it as #st.
+{
+  "TableName": "$stageVariables.tableName",
+  "IndexName": "GSI1",
+  "KeyConditionExpression": "GSI1PK = :pk",
+  "FilterExpression": "#st = :published",
+  "ExpressionAttributeNames": {
+    "#st": "status"
+  },
+  "ExpressionAttributeValues": {
+    ":pk": { "S": "PROJECT" },
+    ":published": { "S": "published" }
+  },
+  "ScanIndexForward": false
+}
