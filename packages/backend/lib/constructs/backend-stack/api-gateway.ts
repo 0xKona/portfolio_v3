@@ -3,6 +3,8 @@ import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as golambda from "@aws-cdk/aws-lambda-go-alpha";
 import * as fs from "fs";
 import * as path from "path";
 import { Construct } from "constructs";
@@ -159,6 +161,88 @@ export class ApiGateway extends Construct {
           ],
         },
       }),
+      {
+        authorizer: this.authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        methodResponses: [{ statusCode: "200" }],
+      }
+    );
+
+    // --- Lambda functions (ARM64, Go) ---
+    const lambdaDir = path.join(__dirname, "../../../lambda");
+
+    const projectsFn = new golambda.GoFunction(this, "ProjectsFn", {
+      entry: path.join(lambdaDir, "projects"),
+      functionName: resourceName(stack, "projects"),
+      description: "Projects POST/PUT/DELETE handler",
+      architecture: lambda.Architecture.ARM_64,
+      timeout: cdk.Duration.seconds(10),
+    });
+    props.table.grantReadWriteData(projectsFn);
+
+    const leaderboardFn = new golambda.GoFunction(this, "LeaderboardFn", {
+      entry: path.join(lambdaDir, "leaderboard"),
+      functionName: resourceName(stack, "leaderboard"),
+      description: "Leaderboard POST handler",
+      architecture: lambda.Architecture.ARM_64,
+      timeout: cdk.Duration.seconds(10),
+    });
+    props.table.grantReadWriteData(leaderboardFn);
+
+    const imageUploadUrlFn = new golambda.GoFunction(this, "ImageUploadUrlFn", {
+      entry: path.join(lambdaDir, "image-upload-url"),
+      functionName: resourceName(stack, "image-upload-url"),
+      description: "Image upload presigned URL generator",
+      architecture: lambda.Architecture.ARM_64,
+      timeout: cdk.Duration.seconds(10),
+    });
+    props.table.grantReadWriteData(imageUploadUrlFn);
+
+    // --- 3.6: POST /api/projects (Cognito auth) ---
+    projectsResource.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(projectsFn),
+      {
+        authorizer: this.authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        methodResponses: [{ statusCode: "200" }],
+      }
+    );
+
+    // --- 3.7: PUT /api/projects/{id} (Cognito auth) ---
+    projectByIdResource.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(projectsFn),
+      {
+        authorizer: this.authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        methodResponses: [{ statusCode: "200" }],
+      }
+    );
+
+    // --- 3.7: DELETE /api/projects/{id} (Cognito auth) ---
+    projectByIdResource.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(projectsFn),
+      {
+        authorizer: this.authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        methodResponses: [{ statusCode: "200" }],
+      }
+    );
+
+    // --- 3.8: POST /api/leaderboard (public — HMAC verified in Lambda) ---
+    leaderboardResource.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(leaderboardFn),
+      { methodResponses: [{ statusCode: "200" }] }
+    );
+
+    // --- 3.9: POST /api/images/upload-url (Cognito auth) ---
+    const uploadUrlResource = imagesResource.addResource("upload-url");
+    uploadUrlResource.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(imageUploadUrlFn),
       {
         authorizer: this.authorizer,
         authorizationType: apigateway.AuthorizationType.COGNITO,
