@@ -296,6 +296,17 @@ All Lambdas written in **Go**, compiled for **Linux/ARM64 (Graviton2)**:
 - Cognito User Pool ID and Client ID exposed as `NEXT_PUBLIC_` env vars baked into the static build at deploy time — this is expected and safe, they are not secrets
 - Actual security enforced at the API layer via Cognito JWT authoriser on API Gateway
 
+**Frontend environment variables (SSM → build):**
+
+All `NEXT_PUBLIC_` values consumed by the frontend are stored in SSM Parameter Store by `BackendStack`. The frontend build reads them before `next build` runs. For local dev, copy the values into `packages/frontend/.env.local` (gitignored).
+
+| SSM Parameter | Frontend env var | Purpose |
+|---|---|---|
+| `/<account>-portfolio-user-pool-id-<stage>` | `NEXT_PUBLIC_USER_POOL_ID` | Cognito User Pool ID |
+| `/<account>-portfolio-user-pool-client-id-<stage>` | `NEXT_PUBLIC_USER_POOL_CLIENT_ID` | Cognito App Client ID |
+
+Values only change if the Cognito pool is recreated — effectively static once deployed.
+
 ---
 
 ## Public Dynamic Features
