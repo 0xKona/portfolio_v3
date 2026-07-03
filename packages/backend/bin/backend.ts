@@ -15,7 +15,7 @@ const region = process.env.CDK_DEFAULT_REGION ?? "eu-west-2";
 const domainName = "v3-test.konarobinson.com";
 const hostedZoneDomain = "konarobinson.com";
 
-new BackendStack(app, "BackendStack", {
+const backend = new BackendStack(app, "BackendStack", {
   env: { account, region },
 });
 
@@ -33,4 +33,5 @@ new FrontendStack(app, "FrontendStack", {
   certificate: cert.certificate,
   domainName,
   hostedZoneDomain,
+  imageProcessingFn: backend.imagePipeline.processingFn,
 });
