@@ -14,6 +14,7 @@ export interface ApiGatewayProps {
   userPool: cognito.IUserPool;
   table: dynamodb.ITable;
   bucketName: string;
+  hmacSecret: string;
 }
 
 /** REST API with Cognito authorizer and VTL direct-to-DynamoDB integrations. */
@@ -188,7 +189,10 @@ export class ApiGateway extends Construct {
       description: "Leaderboard POST handler",
       architecture: lambda.Architecture.ARM_64,
       timeout: cdk.Duration.seconds(10),
-      environment: { TABLE_NAME: props.table.tableName },
+      environment: {
+        TABLE_NAME: props.table.tableName,
+        HMAC_SECRET: props.hmacSecret,
+      },
     });
     props.table.grantReadWriteData(leaderboardFn);
 

@@ -1,4 +1,5 @@
 import * as cdk from "aws-cdk-lib";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import { Database } from "../constructs/backend-stack/database";
 import { Auth } from "../constructs/backend-stack/auth";
@@ -23,12 +24,21 @@ export class BackendStack extends cdk.Stack {
 
     const bucketName = resourceName(this, "static-site");
 
+    // HMAC secret for leaderboard score verification.
+    // Created with a placeholder value — set the real value via scripts/set-hmac-secret.sh.
+    const hmacParam = new ssm.StringParameter(this, "HmacSecretParam", {
+      parameterName: `/${resourceName(this, "hmac-secret")}`,
+      description: "HMAC shared secret for leaderboard score verification",
+      stringValue: "CHANGE_ME",
+    });
+
     this.database = new Database(this, "Database");
     this.auth = new Auth(this, "Auth");
     this.apiGateway = new ApiGateway(this, "ApiGateway", {
       userPool: this.auth.userPool,
       table: this.database.table,
       bucketName,
+      hmacSecret: hmacParam.stringValue,
     });
     this.imagePipeline = new ImagePipeline(this, "ImagePipeline", {
       table: this.database.table,
