@@ -7,6 +7,7 @@ import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as path from "path";
 import { Construct } from "constructs";
@@ -96,6 +97,13 @@ export class FrontendStack extends cdk.Stack {
       destinationKeyPrefix: "static",
       distribution,
       distributionPaths: ["/*"],
+    });
+
+    // Export distribution ID to SSM for the invalidation Lambda to read.
+    new ssm.StringParameter(this, "DistributionIdParam", {
+      parameterName: `/${resourceName(this, "distribution-id")}`,
+      description: "CloudFront distribution ID for cache invalidation",
+      stringValue: distribution.distributionId,
     });
   }
 }

@@ -14,6 +14,9 @@
   },
   "dependencies": {
     "@aws-cdk/aws-lambda-go-alpha": "^2.260.0-alpha.0",
+    "@aws-cdk/aws-pipes-alpha": "^2.260.0-alpha.0",
+    "@aws-cdk/aws-pipes-sources-alpha": "^2.260.0-alpha.0",
+    "@aws-cdk/aws-pipes-targets-alpha": "^2.260.0-alpha.0",
     "aws-cdk-lib": "2.260.0",
     "constructs": "10.6.0",
     "source-map-support": "0.5.21"

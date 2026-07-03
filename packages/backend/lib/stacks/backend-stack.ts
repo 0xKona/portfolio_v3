@@ -4,7 +4,12 @@ import { Database } from "../constructs/backend-stack/database";
 import { Auth } from "../constructs/backend-stack/auth";
 import { ApiGateway } from "../constructs/backend-stack/api-gateway";
 import { ImagePipeline } from "../constructs/backend-stack/image-pipeline";
+import { InvalidationPipeline } from "../constructs/backend-stack/invalidation-pipeline";
 import { resourceName } from "../naming";
+
+export interface BackendStackProps extends cdk.StackProps {
+  domainName: string;
+}
 
 export class BackendStack extends cdk.Stack {
   public readonly database: Database;
@@ -12,7 +17,7 @@ export class BackendStack extends cdk.Stack {
   public readonly apiGateway: ApiGateway;
   public readonly imagePipeline: ImagePipeline;
 
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: BackendStackProps) {
     super(scope, id, props);
 
     const bucketName = resourceName(this, "static-site");
@@ -27,6 +32,10 @@ export class BackendStack extends cdk.Stack {
     this.imagePipeline = new ImagePipeline(this, "ImagePipeline", {
       table: this.database.table,
       bucketName,
+    });
+    new InvalidationPipeline(this, "InvalidationPipeline", {
+      table: this.database.table,
+      domainName: props.domainName,
     });
   }
 }

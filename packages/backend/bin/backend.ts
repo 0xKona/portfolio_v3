@@ -17,6 +17,7 @@ const hostedZoneDomain = "konarobinson.com";
 
 const backend = new BackendStack(app, "BackendStack", {
   env: { account, region },
+  domainName,
 });
 
 // ACM cert for CloudFront must be in us-east-1.
