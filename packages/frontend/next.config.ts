@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
           source: "/api/:path*",
           destination: "https://v3-test.konarobinson.com/api/:path*",
         },
+        {
+          source: "/images/:path*",
+          destination: "https://v3-test.konarobinson.com/images/:path*",
+        },
       ],
 };
 

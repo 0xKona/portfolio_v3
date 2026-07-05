@@ -22,6 +22,7 @@ type UpdateProjectRequest struct {
 	DemoUrl    *string  `json:"demoUrl"`
 	IsFeatured *bool    `json:"isFeatured"`
 	Status     *string  `json:"status"`
+	Images     []string `json:"images"`
 }
 
 func handleUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -87,6 +88,16 @@ func handleUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (e
 		exprNames["#isFeatured"] = "isFeatured"
 		exprValues[":isFeatured"] = &types.AttributeValueMemberBOOL{Value: *req.IsFeatured}
 		setClauses = append(setClauses, "#isFeatured = :isFeatured")
+	}
+
+	if req.Images != nil {
+		exprNames["#images"] = "images"
+		imagesList := make([]types.AttributeValue, len(req.Images))
+		for i, img := range req.Images {
+			imagesList[i] = &types.AttributeValueMemberS{Value: img}
+		}
+		exprValues[":images"] = &types.AttributeValueMemberL{Value: imagesList}
+		setClauses = append(setClauses, "#images = :images")
 	}
 
 	// "status" is a DynamoDB reserved word — must use expression name alias.
@@ -187,6 +198,7 @@ func handleUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (e
 		"demoUrl":    getStringPtr(result.Attributes, "demoUrl"),
 		"isFeatured": getBool(result.Attributes, "isFeatured"),
 		"status":     getString(result.Attributes, "status"),
+		"images":     getStringList(result.Attributes, "images"),
 		"createdAt":  getString(result.Attributes, "createdAt"),
 		"updatedAt":  getString(result.Attributes, "updatedAt"),
 	})
@@ -249,3 +261,4 @@ func getStringList(item map[string]types.AttributeValue, key string) []string {
 	}
 	return []string{}
 }
+

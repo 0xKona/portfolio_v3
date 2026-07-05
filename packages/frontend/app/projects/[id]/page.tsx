@@ -1,36 +1,19 @@
 import { ProjectDetail } from "@/components/projects/project-detail";
 
 // ---------------------------------------------------------------------------
-// Static params — at build time, fetch known project IDs from the API.
-// Falls back to a placeholder so the build always succeeds even when the
-// API is unreachable during deployment.
+// Static params — generates at least one HTML shell so the static export
+// succeeds. The CloudFront Function rewrites any /projects/<id> to this shell,
+// and the client component reads the real ID from the URL via useParams().
 // ---------------------------------------------------------------------------
 
 export async function generateStaticParams() {
-  try {
-    const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? "";
-    const res = await fetch(`${apiBase}/api/projects`);
-    if (res.ok) {
-      const projects: { id: string }[] = await res.json();
-      if (projects.length > 0) {
-        return projects.map((p) => ({ id: p.id }));
-      }
-    }
-  } catch {
-    // API unavailable at build time — use placeholder
-  }
   return [{ id: "__placeholder__" }];
 }
 
 // ---------------------------------------------------------------------------
-// Page
+// Page — trivial wrapper; ProjectDetail reads the ID from the URL itself.
 // ---------------------------------------------------------------------------
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default async function ProjectDetailPage({ params }: PageProps) {
-  const { id } = await params;
-  return <ProjectDetail id={id} />;
+export default function ProjectDetailPage() {
+  return <ProjectDetail />;
 }

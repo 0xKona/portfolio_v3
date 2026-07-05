@@ -49,7 +49,7 @@ export class FrontendStack extends cdk.Stack {
           allowedMethods: [s3.HttpMethods.PUT],
           allowedOrigins: stage === "prod"
             ? ["https://konarobinson.com", "https://www.konarobinson.com"]
-            : [`https://${props.domainName}`],
+            : [`https://${props.domainName}`, "http://localhost:3000"],
           allowedHeaders: ["Content-Type"],
         },
       ],
@@ -64,6 +64,77 @@ export class FrontendStack extends cdk.Stack {
       );
     }
 
+    // -------------------------------------------------------------------------
+    // CloudFront Function — URI rewrite for Next.js static export dynamic routes.
+    //
+    // Next.js static export only generates HTML for params known at build time.
+    // Dynamic routes like /projects/[id] and /manager/[id] need their URIs
+    // rewritten to the fallback HTML shell so client-side JS can hydrate and
+    // fetch data at runtime.
+    //
+    // Pattern: if the URI matches a dynamic route and has no file extension,
+    // rewrite it to the pre-rendered fallback page.
+    // -------------------------------------------------------------------------
+    const routingFunction = new cloudfront.Function(this, "RoutingFunction", {
+      functionName: resourceName(this, "routing"),
+      comment: "Rewrite dynamic route URIs to fallback HTML for Next.js static export",
+      code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+
+  // Skip files with extensions (JS, CSS, images, fonts, etc.)
+  if (uri.match(/\\.[a-z0-9]+$/i)) {
+    return request;
+  }
+
+  // Dynamic route: /projects/<id> → /projects/__placeholder__.html
+  if (uri.match(/^\\/projects\\/[^/]+$/)) {
+    request.uri = '/projects/__placeholder__.html';
+    return request;
+  }
+
+  // Dynamic route: /manager/<id> → /manager/new.html (the pre-rendered shell)
+  if (uri.match(/^\\/manager\\/[^/]+$/)) {
+    request.uri = '/manager/new.html';
+    return request;
+  }
+
+  // Static pages: /signin → /signin.html, /projects → /projects.html, etc.
+  if (!uri.endsWith('/') && !uri.includes('.')) {
+    request.uri = uri + '.html';
+    return request;
+  }
+
+  // Root path: / → /index.html (handled by defaultRootObject, but be safe)
+  if (uri === '/') {
+    request.uri = '/index.html';
+  }
+
+  return request;
+}
+      `),
+    });
+
+    // -------------------------------------------------------------------------
+    // CloudFront Function — strip /images prefix for S3 origin path alignment.
+    //
+    // The /images/* behavior has originPath="/processed", so CloudFront would
+    // request S3 key = processed + /images/<id>/<file>. We need to strip
+    // the /images prefix so the final key is processed/<id>/<file>.
+    // -------------------------------------------------------------------------
+    const imagePathFunction = new cloudfront.Function(this, "ImagePathFunction", {
+      functionName: resourceName(this, "image-path"),
+      comment: "Strip /images prefix for S3 processed/ origin alignment",
+      code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  request.uri = request.uri.replace(/^\\/images/, '');
+  return request;
+}
+      `),
+    });
+
     const distribution = new cloudfront.Distribution(this, "Distribution", {
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(bucket, {
@@ -71,6 +142,12 @@ export class FrontendStack extends cdk.Stack {
         }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        functionAssociations: [
+          {
+            function: routingFunction,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       },
       additionalBehaviors: {
         "/api/projects*": {
@@ -105,6 +182,12 @@ export class FrontendStack extends cdk.Stack {
           }),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          functionAssociations: [
+            {
+              function: imagePathFunction,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
         },
       },
       defaultRootObject: "index.html",
@@ -112,9 +195,12 @@ export class FrontendStack extends cdk.Stack {
       certificate: props.certificate,
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       comment: resourceName(this, "cdn"),
+      // Custom error responses: serve 404.html for genuinely missing resources.
+      // The routing function handles dynamic routes before S3 is hit, so these
+      // only fire for truly non-existent paths (e.g. typos, deleted assets).
       errorResponses: [
-        { httpStatus: 403, responseHttpStatus: 200, responsePagePath: "/404.html" },
-        { httpStatus: 404, responseHttpStatus: 200, responsePagePath: "/404.html" },
+        { httpStatus: 403, responseHttpStatus: 404, responsePagePath: "/404.html" },
+        { httpStatus: 404, responseHttpStatus: 404, responsePagePath: "/404.html" },
       ],
     });
 

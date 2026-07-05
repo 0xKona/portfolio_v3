@@ -2,38 +2,22 @@
 
 import useSWR from "swr";
 import { getProject } from "@/lib/api";
+import { useUrlId } from "@/lib/hooks/use-url-id";
 import { BackLink } from "@/components/navigation/back-link";
 import { ImageCarousel } from "@/components/projects/image-carousel";
 import { SkillBadge } from "@/components/ui/skill-badge";
 import { TerminalLoading } from "@/components/ui";
 import type { Project } from "@/types/schema";
 
-interface ProjectDetailProps {
-  id: string;
-}
+export function ProjectDetail() {
+  const id = useUrlId("projects");
 
-export function ProjectDetail({ id }: ProjectDetailProps) {
   const { data: project, error, isLoading } = useSWR<Project>(
-    id && id !== "__placeholder__" ? `project-${id}` : null,
-    () => getProject(id),
+    id ? `project-${id}` : null,
+    () => getProject(id!),
   );
 
-  if (id === "__placeholder__") {
-    return (
-      <main className="min-h-screen pt-20 pb-12">
-        <div className="mb-6">
-          <BackLink href="/projects" label="back to projects" />
-        </div>
-        <div className="border border-neutral-800 p-8 text-center">
-          <p className="text-neutral-500 text-sm font-mono">
-            project not found
-          </p>
-        </div>
-      </main>
-    );
-  }
-
-  if (isLoading) {
+  if (isLoading || id === null) {
     return (
       <main className="min-h-screen flex items-center justify-center pt-20 pb-12">
         <TerminalLoading message="loading project..." />
@@ -99,7 +83,7 @@ export function ProjectDetail({ id }: ProjectDetailProps) {
         <div className="lg:col-span-2">
           <ImageCarousel
             projectId={project.id}
-            imageCount={project.imageCount}
+            images={project.images ?? []}
             projectName={project.name}
           />
         </div>

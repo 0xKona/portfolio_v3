@@ -25,17 +25,23 @@ type Variant struct {
 }
 
 var variants = []Variant{
-	{Name: "thumbnail.jpg", Width: 400, Quality: 80},
-	{Name: "optimised.jpg", Width: 1200, Quality: 90},
-	{Name: "original.jpg", Width: 0, Quality: 95},
+	{Name: "thumbnail", Width: 400, Quality: 80},
+	{Name: "optimised", Width: 1200, Quality: 90},
+	{Name: "original", Width: 0, Quality: 95},
 }
 
 // processImage downloads the raw image, generates JPEG variants, uploads them
-// to processed/<projectId>/, and sets imageProcessed=true on the DynamoDB record.
+// to processed/<projectId>/<imageId>-<variant>.jpg, and sets imageProcessed=true
+// on the DynamoDB record.
 func processImage(ctx context.Context, key string) error {
 	projectId := extractProjectId(key)
 	if projectId == "" {
 		return fmt.Errorf("could not extract projectId from key: %s", key)
+	}
+
+	imageId := extractImageId(key)
+	if imageId == "" {
+		return fmt.Errorf("could not extract imageId from key: %s", key)
 	}
 
 	src, err := downloadImage(ctx, key)
@@ -50,7 +56,7 @@ func processImage(ctx context.Context, key string) error {
 			return fmt.Errorf("encode %s failed: %w", v.Name, err)
 		}
 
-		outputKey := fmt.Sprintf("processed/%s/%s", projectId, v.Name)
+		outputKey := fmt.Sprintf("processed/%s/%s-%s.jpg", projectId, imageId, v.Name)
 		if err := upload(ctx, outputKey, jpegData); err != nil {
 			return fmt.Errorf("upload %s failed: %w", v.Name, err)
 		}
@@ -63,13 +69,27 @@ func processImage(ctx context.Context, key string) error {
 	return nil
 }
 
-// extractProjectId parses "raw/<projectId>/original.<ext>" → "<projectId>"
+// extractProjectId parses "raw/<projectId>/<imageId>.<ext>" → "<projectId>"
 func extractProjectId(key string) string {
 	parts := strings.Split(key, "/")
 	if len(parts) >= 3 && parts[0] == "raw" {
 		return parts[1]
 	}
 	return ""
+}
+
+// extractImageId parses "raw/<projectId>/<imageId>.<ext>" → "<imageId>"
+func extractImageId(key string) string {
+	parts := strings.Split(key, "/")
+	if len(parts) < 3 {
+		return ""
+	}
+	filename := parts[2] // e.g. "a1b2c3d4e5.png"
+	dotIdx := strings.LastIndex(filename, ".")
+	if dotIdx <= 0 {
+		return ""
+	}
+	return filename[:dotIdx]
 }
 
 // downloadImage fetches the object from S3 and decodes it into an image.Image.

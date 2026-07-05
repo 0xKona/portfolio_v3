@@ -6,13 +6,13 @@ import { getProjectImageUrl } from "@/lib/api";
 
 interface ImageCarouselProps {
   projectId: string;
-  imageCount: number;
+  images: string[];
   projectName: string;
 }
 
 export function ImageCarousel({
   projectId,
-  imageCount,
+  images: imageIds,
   projectName,
 }: ImageCarouselProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -49,9 +49,9 @@ export function ImageCarousel({
     };
   }, [mainApi, onSelect]);
 
-  const images = Array.from({ length: imageCount }, (_, i) => ({
-    src: getProjectImageUrl(projectId, "optimised", i),
-    thumbSrc: getProjectImageUrl(projectId, "thumbnail", i),
+  const images = imageIds.map((imageId, i) => ({
+    src: getProjectImageUrl(projectId, "optimised", imageId),
+    thumbSrc: getProjectImageUrl(projectId, "thumbnail", imageId),
     alt: `${projectName} screenshot ${i + 1}`,
   }));
 

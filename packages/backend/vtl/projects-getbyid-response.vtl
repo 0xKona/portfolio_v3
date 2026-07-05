@@ -31,6 +31,13 @@
     #end
     "isFeatured": $item.isFeatured.BOOL,
     "status": "$item.status.S",
+    "images": [
+      #if($item.images && $item.images.L)
+      #foreach($img in $item.images.L)
+        "$img.S"#if($foreach.hasNext),#end
+      #end
+      #end
+    ],
     "createdAt": "$item.createdAt.S",
     "updatedAt": "$item.updatedAt.S"
   }

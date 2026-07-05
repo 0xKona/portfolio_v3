@@ -13,7 +13,7 @@ export interface Project {
   demoUrl: string | null;
   isFeatured: boolean;
   status: ProjectStatus;
-  imageCount: number;
+  images: string[];
   readonly createdAt: string;
   readonly updatedAt: string;
 }
@@ -35,6 +35,7 @@ export interface UpdateProjectInput {
   demoUrl?: string | null;
   isFeatured?: boolean;
   status?: ProjectStatus;
+  images?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -68,6 +69,7 @@ export interface CreateScoreInput {
 export interface UploadUrlResponse {
   uploadUrl: string;
   projectId: string;
+  imageId: string;
   key: string;
 }
 

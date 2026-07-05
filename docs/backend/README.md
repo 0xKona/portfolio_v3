@@ -40,12 +40,12 @@ FrontendStack     → CertificateStack + BackendStack
 |---|---|---|
 | `projects` | API GW (POST/PUT/DELETE) | Validate + write project records |
 | `leaderboard` | API GW (POST) | Validate + HMAC-verify + write scores |
-| `image-upload-url` | API GW (POST) | Generate presigned S3 PUT URL |
+| `image-upload-url` | API GW (POST) | Generate presigned S3 PUT URL (no project existence check) |
 | `image-processing` | S3 `raw/` upload | Generate JPEG variants → `processed/` |
 | `invalidation` | DynamoDB stream → EventBridge Pipe | CloudFront invalidation + cache warming + `lastPublished` |
 | `cleanup` | EventBridge weekly schedule | Delete orphaned `processed/` objects |
 
-**Image pipeline** — presigned upload to `raw/` → S3 event → processing Lambda → 3 JPEG variants in `processed/` → `imageProcessed: true` on the record.
+**Image pipeline** — presigned upload to `raw/<projectId>/<imageId>.<ext>` → S3 event → processing Lambda → 3 JPEG variants per image (`<imageId>-thumbnail.jpg`, `<imageId>-optimised.jpg`, `<imageId>-original.jpg`) in `processed/<projectId>/` → `imageProcessed: true` on the record. Each upload generates a unique `imageId`; image order is managed by the `images` array on the project record.
 
 **Cache invalidation** — a project write hits the DynamoDB stream → EventBridge Pipe (filtered to `PROJECT#` keys) → invalidation Lambda invalidates and warms the CloudFront cache, then stamps `META#lastPublished`.
 
@@ -80,3 +80,35 @@ All paths are served same-origin through CloudFront:
 | `/images/*` | S3 `processed/` | Long (optimized) |
 
 No CORS needed — all API calls are same-origin from the frontend's perspective.
+
+### Dynamic route routing (CloudFront Function)
+
+A CloudFront Function (viewer-request) handles URI rewriting for Next.js static
+export dynamic routes. Since `output: "export"` only generates HTML for params
+known at build time, requests for dynamic paths (e.g. `/projects/<uuid>`) would
+otherwise 404 against S3.
+
+The function rewrites:
+
+| Request URI | Rewritten to | Reason |
+|---|---|---|
+| `/projects/<any-id>` | `/projects/__placeholder__.html` | Dynamic route fallback shell |
+| `/manager/<any-id>` | `/manager/new.html` | Dynamic route fallback shell |
+| `/signin` | `/signin.html` | Static page without trailing slash |
+| `/projects` | `/projects.html` | Static page without trailing slash |
+| `/foo.js`, `/img.png` | unchanged | Files with extensions pass through |
+
+The HTML shell loads, client-side JavaScript hydrates, and SWR fetches actual
+data from the API. This means new projects work immediately without redeploying
+the frontend — only the project data needs to exist in the API.
+
+### Image path routing (CloudFront Function)
+
+A second CloudFront Function (viewer-request) on the `/images/*` behaviour strips
+the `/images/` prefix so the request maps to the `processed/` S3 prefix:
+
+| Request URI | S3 key |
+|---|---|
+| `/images/<projectId>/<imageId>-thumbnail.jpg` | `processed/<projectId>/<imageId>-thumbnail.jpg` |
+| `/images/<projectId>/<imageId>-optimised.jpg` | `processed/<projectId>/<imageId>-optimised.jpg` |
+| `/images/<projectId>/<imageId>-original.jpg` | `processed/<projectId>/<imageId>-original.jpg` |

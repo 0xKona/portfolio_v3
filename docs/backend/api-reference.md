@@ -60,6 +60,7 @@ Obtain the token client-side via Amplify Auth / Cognito SRP against the User Poo
   "demoUrl": "https://...",                     // string | null
   "isFeatured": false,                          // boolean
   "status": "published",                        // "published" | "draft"
+  "images": ["abc123", "def456", "ghi789"],      // string[], ordered image IDs (display order)
   "createdAt": "2026-07-03T18:22:30Z",          // immutable
   "updatedAt": "2026-07-03T18:22:30Z"
 }
@@ -68,7 +69,7 @@ Obtain the token client-side via Amplify Auth / Cognito SRP against the User Poo
 Notes:
 - **Public GETs only return `status: "published"` projects.** Drafts are filtered out server-side.
 - **Featured** projects (published + `isFeatured: true`) are indexed separately for a "featured" query.
-- Images are **not** in the project object. Build image URLs from the `id` (see [Images](#images)).
+- **`images`** is an ordered array of image IDs. The array order defines display order in the frontend (first element = hero/thumbnail). Defaults to `[]` for projects with no images. Use these IDs to build image URLs (see [Images](#images)).
 
 ### GET /api/projects
 
@@ -124,7 +125,8 @@ Partial update — include only the fields you want to change. Any field omitted
   "githubUrl": "…",
   "demoUrl": "…",
   "isFeatured": true,
-  "status": "published"
+  "status": "published",
+  "images": ["abc123", "def456", "ghi789"]
 }
 ```
 
@@ -241,26 +243,26 @@ Request:
 
 ```jsonc
 {
-  "projectId": "…",        // required, UUID v4, must exist
+  "projectId": "…",        // required, UUID v4
   "fileExtension": "png"   // required: jpg | jpeg | png | webp | gif
 }
 ```
+
+The `projectId` does **not** need to exist in DynamoDB — uploads can happen before or after the project record is created. The backend generates a unique `imageId` for each upload.
 
 ```
 200 OK
 {
   "uploadUrl": "https://…s3…?X-Amz-Signature=…",  // presigned PUT, 5 min expiry
   "projectId": "…",
-  "key": "raw/<projectId>/original.png"
+  "imageId": "abc123",                             // unique ID for this image
+  "key": "raw/<projectId>/<imageId>.png"           // S3 key where image will land
 }
-404    project not found
 400    validation failed
 401    missing/invalid token
 ```
 
-Requesting a URL sets `imageProcessed: false` on the project (resets state for re-uploads).
-
-**Uploading:** `PUT` the raw bytes to `uploadUrl` with header `Content-Type: <mime>`. The browser request is a cross-origin PUT; S3 CORS allows `PUT` from the site origin.
+**Uploading:** `PUT` the raw bytes to `uploadUrl` with header `Content-Type: <mime>`. The browser request is a cross-origin PUT; S3 CORS allows `PUT` from the site origin (and `localhost:3000` in test).
 
 ### GET /api/images/status/{projectId}  🔒 Cognito
 
@@ -273,20 +275,32 @@ Poll until processing finishes.
 
 ### Processed image URLs
 
-After processing, three JPEG variants exist under `processed/<projectId>/`:
+After processing, three JPEG variants exist under `processed/<projectId>/` per image:
 
-| Variant | Max width | Quality |
-|---|---|---|
-| `thumbnail.jpg` | 400px | 80 |
-| `optimised.jpg` | 1200px | 90 |
-| `original.jpg` | full | 95 |
+| Variant | Filename pattern | Max width | Quality |
+|---|---|---|---|
+| thumbnail | `<imageId>-thumbnail.jpg` | 400px | 80 |
+| optimised | `<imageId>-optimised.jpg` | 1200px | 90 |
+| original | `<imageId>-original.jpg` | full | 95 |
+
+Each image is identified by its `imageId` (returned from the upload-url endpoint and stored in the project's `images` array).
 
 Once CloudFront `/images/*` routing is in place, reference them same-origin:
 
 ```
-/images/<projectId>/thumbnail.jpg
-/images/<projectId>/optimised.jpg
-/images/<projectId>/original.jpg
+/images/<projectId>/<imageId>-thumbnail.jpg
+/images/<projectId>/<imageId>-optimised.jpg
+/images/<projectId>/<imageId>-original.jpg
 ```
 
-Handle a missing image gracefully client-side (a project may have no image, or processing may be in progress).
+**Frontend URL builder:**
+
+```ts
+getProjectImageUrl(projectId, imageId, "thumbnail")  → /images/<projectId>/<imageId>-thumbnail.jpg
+getProjectImageUrl(projectId, imageId, "optimised")  → /images/<projectId>/<imageId>-optimised.jpg
+getProjectImageUrl(projectId, imageId, "original")   → /images/<projectId>/<imageId>-original.jpg
+```
+
+The `images` array on the project record defines **display order** — the first element is the hero/thumbnail shown in listings. Iterate the array to render all images in the correct order.
+
+Handle a missing image gracefully client-side (a project may have no images, or processing may be in progress).

@@ -44,6 +44,7 @@ type ProjectItem struct {
 	DemoUrl    *string  `dynamodbav:"demoUrl,omitempty"`
 	IsFeatured bool     `dynamodbav:"isFeatured"`
 	Status     string   `dynamodbav:"status"`
+	Images     []string `dynamodbav:"images"`
 	CreatedAt  string   `dynamodbav:"createdAt"`
 	UpdatedAt  string   `dynamodbav:"updatedAt"`
 }
@@ -75,6 +76,7 @@ func handleCreate(ctx context.Context, request events.APIGatewayProxyRequest) (e
 		DemoUrl:    req.DemoUrl,
 		IsFeatured: false,
 		Status:     "draft",
+		Images:     []string{},
 		CreatedAt:  now,
 		UpdatedAt:  now,
 	}
@@ -111,6 +113,7 @@ func handleCreate(ctx context.Context, request events.APIGatewayProxyRequest) (e
 		"demoUrl":    item.DemoUrl,
 		"isFeatured": item.IsFeatured,
 		"status":     item.Status,
+		"images":     item.Images,
 		"createdAt":  item.CreatedAt,
 		"updatedAt":  item.UpdatedAt,
 	})

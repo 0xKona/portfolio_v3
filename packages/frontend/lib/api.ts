@@ -35,8 +35,18 @@ const API_BASE = "/api";
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, options);
   if (!res.ok) {
+    // Next.js rewrite proxy may return HTML for non-2xx upstream responses
+    const contentType = res.headers.get("content-type") ?? "";
+    if (contentType.includes("text/html")) {
+      throw new ApiError(res.status, { message: `Request failed with status ${res.status}` });
+    }
     const body = await res.json().catch(() => null);
     throw new ApiError(res.status, body);
+  }
+  // Guard against HTML 200 responses (shouldn't happen, but defensive)
+  const contentType = res.headers.get("content-type") ?? "";
+  if (contentType.includes("text/html")) {
+    throw new ApiError(502, { message: "Unexpected HTML response from API" });
   }
   return await res.json();
 }
@@ -144,9 +154,8 @@ export async function getImageStatus(
 
 export function getProjectImageUrl(
   projectId: string,
-  variant: "thumbnail" | "optimised" | "original" = "thumbnail",
-  index?: number,
+  variant: "thumbnail" | "optimised" | "original",
+  imageId: string,
 ): string {
-  const suffix = index != null && index > 0 ? `-${index}` : "";
-  return `/images/${projectId}/${variant}${suffix}.jpg`;
+  return `/images/${projectId}/${imageId}-${variant}.jpg`;
 }

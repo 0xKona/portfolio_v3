@@ -41,7 +41,7 @@ export function ProjectCard({
         </div>
       )}
 
-      <ProjectCardImage projectId={id} projectName={name} />
+      <ProjectCardImage projectId={id} imageId={project.images?.[0]} projectName={name} />
 
       <h3 className="text-neutral-300 text-sm">
         <span className="text-neutral-500">&gt;</span> {name}

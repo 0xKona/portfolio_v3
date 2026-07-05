@@ -3,6 +3,7 @@ import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { MainNavBar } from "@/components/navigation/main-nav-bar";
 import { Footer } from "@/components/navigation/footer";
+import { AuthProvider } from "@/components/auth/auth-provider";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -56,11 +57,13 @@ export default function RootLayout({
       <body
         className={`${jetbrainsMono.variable} min-h-dvh font-mono bg-black text-neutral-300 antialiased flex flex-col`}
       >
-        <MainNavBar />
-        <div className="max-w-7xl mx-auto px-4 flex-1 w-full">
-          {children}
-        </div>
-        <Footer />
+        <AuthProvider>
+          <MainNavBar />
+          <div className="max-w-7xl mx-auto px-4 flex-1 w-full">
+            {children}
+          </div>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );
