@@ -24,6 +24,5 @@ export { TerminalStatus, TerminalErrorBox } from "./status";
 export { TerminalLoading } from "./loading";
 
 // Display
-export { AsciiTitle } from "./ascii-title";
 export { UnderConstruction, WorriedCharacter } from "./characters";
 export { SkillBadge } from "./skill-badge";

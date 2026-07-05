@@ -34,6 +34,11 @@ export class ApiGateway extends Construct {
         stageName: "api",
         variables: { tableName: props.table.tableName },
       },
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: ["Content-Type", "Authorization"],
+      },
     });
 
     // Cognito authorizer — applied per-method where auth is required

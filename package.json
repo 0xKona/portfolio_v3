@@ -17,9 +17,13 @@
     "set-hmac-secret:test": "STAGE=test uv run scripts/set-hmac-secret.py",
     "set-hmac-secret:prod": "STAGE=prod uv run scripts/set-hmac-secret.py",
     "sync-env:test": "STAGE=test uv run scripts/sync-env-local.py",
-    "sync-env:prod": "STAGE=prod uv run scripts/sync-env-local.py"
+    "sync-env:prod": "STAGE=prod uv run scripts/sync-env-local.py",
+    "ascii": "node scripts/generate-ascii.js"
   },
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "devDependencies": {
+    "figlet": "^1.11.0"
+  }
 }
