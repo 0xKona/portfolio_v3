@@ -17,7 +17,7 @@ The npm wrappers in the root `package.json` set `STAGE` for you.
 
 Sets the leaderboard HMAC secret in SSM Parameter Store (`/<account>-portfolio-hmac-secret-<stage>`).
 
-The CDK creates this parameter with a `CHANGE_ME` placeholder on first deploy. Run this to set a real value, **then redeploy** so the leaderboard Lambda picks it up as its `HMAC_SECRET` env var.
+The CDK creates this parameter with a `CHANGE_ME` placeholder on first deploy. Run this to set a real value. The Lambda reads from SSM at cold start, so **no redeploy is needed** — the next invocation after a cold start picks up the new value automatically.
 
 ```bash
 # Generate a random 32-byte hex secret
@@ -28,13 +28,7 @@ npm run set-hmac-secret:prod
 STAGE=test uv run scripts/set-hmac-secret.py "my-shared-secret"
 ```
 
-After running:
-
-```bash
-cd packages/backend && npm run deploy:test   # Lambda re-reads the new value
-```
-
-> Until a real secret is set, the Lambda **skips** signature verification (dev convenience). Set it before relying on leaderboard anti-tamper.
+> Until a real secret is set, the Lambda **skips** signature verification (the placeholder triggers no-op mode). Set it before relying on leaderboard anti-tamper.
 
 ---
 
@@ -74,9 +68,8 @@ Run this after deploying (so the Cognito parameters exist) and after `set-hmac-s
 # 1. Deploy
 npm run deploy:test
 
-# 2. Set a real HMAC secret and redeploy so the Lambda uses it
+# 2. Set a real HMAC secret (no redeploy needed — Lambda reads from SSM at cold start)
 npm run set-hmac-secret:test
-cd packages/backend && npm run deploy:test && cd ../..
 
 # 3. Pull env vars for local frontend dev
 npm run sync-env:test

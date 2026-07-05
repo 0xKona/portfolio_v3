@@ -4,7 +4,7 @@
 # ///
 """Sets the HMAC secret in SSM Parameter Store.
 
-After running this, redeploy BackendStack so the Lambda picks up the new value.
+The leaderboard Lambda reads from SSM at cold start — no redeploy needed.
 
 Usage:
     uv run scripts/set-hmac-secret.py <secret>
@@ -43,6 +43,5 @@ ssm.put_parameter(
 )
 
 print(f"\n✅ Set {param_name} in {region}")
-print(f"\nNext steps:")
-print(f"  1. Redeploy: cd packages/backend && npm run deploy:{stage}")
-print(f"  2. Use the same secret in your frontend game code")
+print(f"\nThe Lambda will pick up the new value on next cold start (no redeploy needed).")
+print(f"Run `npm run sync-env:{stage}` to update your frontend .env.local with the same secret.")

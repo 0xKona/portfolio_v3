@@ -52,7 +52,7 @@ First deploy takes a few minutes (ACM DNS validation + CloudFront distribution).
    ```bash
    npm run set-hmac-secret:test
    ```
-   Then redeploy so the Lambda picks up the value. See [scripts.md](./scripts.md).
+   No redeploy needed — the Lambda reads from SSM at cold start. See [scripts.md](./scripts.md).
 2. **Create the Cognito dashboard user** — self-signup is disabled; create the admin user in the Cognito console or via `aws cognito-idp admin-create-user`.
 3. **Sync frontend env vars** for local dev:
    ```bash

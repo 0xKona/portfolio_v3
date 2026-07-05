@@ -25,8 +25,8 @@ export class BackendStack extends cdk.Stack {
     const bucketName = resourceName(this, "static-site");
 
     // HMAC secret for leaderboard score verification.
-    // Created with a placeholder value — set the real value via scripts/set-hmac-secret.sh.
-    const hmacParam = new ssm.StringParameter(this, "HmacSecretParam", {
+    // Created with a placeholder value — set the real value via scripts/set-hmac-secret.py.
+    new ssm.StringParameter(this, "HmacSecretParam", {
       parameterName: `/${resourceName(this, "hmac-secret")}`,
       description: "HMAC shared secret for leaderboard score verification",
       stringValue: "CHANGE_ME",
@@ -38,7 +38,6 @@ export class BackendStack extends cdk.Stack {
       userPool: this.auth.userPool,
       table: this.database.table,
       bucketName,
-      hmacSecret: hmacParam.stringValue,
     });
     this.imagePipeline = new ImagePipeline(this, "ImagePipeline", {
       table: this.database.table,

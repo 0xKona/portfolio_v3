@@ -14,7 +14,6 @@ export interface ApiGatewayProps {
   userPool: cognito.IUserPool;
   table: dynamodb.ITable;
   bucketName: string;
-  hmacSecret: string;
 }
 
 /** REST API with Cognito authorizer and VTL direct-to-DynamoDB integrations. */
@@ -206,10 +205,18 @@ export class ApiGateway extends Construct {
       timeout: cdk.Duration.seconds(10),
       environment: {
         TABLE_NAME: props.table.tableName,
-        HMAC_SECRET: props.hmacSecret,
+        HMAC_SECRET_PARAM: `/${resourceName(stack, "hmac-secret")}`,
       },
     });
     props.table.grantReadWriteData(leaderboardFn);
+    leaderboardFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ssm:GetParameter"],
+        resources: [
+          `arn:aws:ssm:${stack.region}:${stack.account}:parameter/${resourceName(stack, "hmac-secret")}`,
+        ],
+      })
+    );
 
     const imageUploadUrlFn = new golambda.GoFunction(this, "ImageUploadUrlFn", {
       entry: path.join(lambdaDir, "image-upload-url"),
