@@ -99,4 +99,3 @@ BackendStack (eu-west-2)        ─┼─→ FrontendStack (eu-west-2)
 | Certificate stack stuck `CREATE_IN_PROGRESS` | Waiting on DNS validation — the Route 53 record is created automatically; give it a few minutes |
 | Go bundling fails | Check Go ≥ 1.24 is installed and on `PATH` |
 | Leaderboard accepts any signature | `HMAC_SECRET` still the placeholder — run `set-hmac-secret` and redeploy |
-| Frontend can't reach the API in the browser | CloudFront `/api/*` routing not yet wired; call the API Gateway URL directly for now |

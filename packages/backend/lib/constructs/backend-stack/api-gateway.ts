@@ -179,9 +179,24 @@ export class ApiGateway extends Construct {
       description: "Projects POST/PUT/DELETE handler",
       architecture: lambda.Architecture.ARM_64,
       timeout: cdk.Duration.seconds(10),
-      environment: { TABLE_NAME: props.table.tableName },
+      environment: {
+        TABLE_NAME: props.table.tableName,
+        BUCKET_NAME: props.bucketName,
+      },
     });
     props.table.grantReadWriteData(projectsFn);
+    projectsFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:ListBucket"],
+        resources: [`arn:aws:s3:::${props.bucketName}`],
+      })
+    );
+    projectsFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:DeleteObject"],
+        resources: [`arn:aws:s3:::${props.bucketName}/raw/*`, `arn:aws:s3:::${props.bucketName}/processed/*`],
+      })
+    );
 
     const leaderboardFn = new golambda.GoFunction(this, "LeaderboardFn", {
       entry: path.join(lambdaDir, "leaderboard"),

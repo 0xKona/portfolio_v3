@@ -6,6 +6,7 @@ import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
@@ -18,6 +19,7 @@ export interface FrontendStackProps extends cdk.StackProps {
   domainName: string;
   hostedZoneDomain: string;
   imageProcessingFn?: lambda.IFunction;
+  api: apigateway.RestApi;
 }
 
 /** S3 bucket, CloudFront distribution (OAC), DNS alias record, and site deployment. */
@@ -69,6 +71,41 @@ export class FrontendStack extends cdk.Stack {
         }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      },
+      additionalBehaviors: {
+        "/api/projects*": {
+          origin: new origins.RestApiOrigin(props.api),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: new cloudfront.CachePolicy(this, "ProjectsCachePolicy", {
+            cachePolicyName: resourceName(this, "projects-cache"),
+            defaultTtl: cdk.Duration.hours(24),
+            maxTtl: cdk.Duration.days(7),
+            minTtl: cdk.Duration.seconds(0),
+          }),
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
+        "/api/leaderboard*": {
+          origin: new origins.RestApiOrigin(props.api),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
+        "/api/images*": {
+          origin: new origins.RestApiOrigin(props.api),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
+        "/images/*": {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(bucket, {
+            originPath: "/processed",
+          }),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        },
       },
       defaultRootObject: "index.html",
       domainNames: [props.domainName],

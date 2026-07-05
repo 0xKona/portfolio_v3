@@ -1,6 +1,6 @@
 # Backend Documentation
 
-AWS CDK backend for portfolio_v3. Serverless, single-region, pay-per-use.
+AWS CDK backend for portfolio_v3
 
 ## Contents
 
@@ -67,7 +67,16 @@ Resource names follow `<account>-portfolio-<slug>-<stage>` via `lib/naming.ts`.
 - **Environments** — `--context stage=test|prod` (defaults to `test`).
 - **Lambdas** — Go, ARM64/Graviton2, bundled via `@aws-cdk/aws-lambda-go-alpha`.
 
-## Known gaps / not yet implemented
+## CloudFront path routing
 
-- **CloudFront path routing.** The distribution currently serves only the static site (default behavior → S3 `/static`). Planned `/api/*` → API Gateway and `/images/*` → S3 `processed/` behaviors are **not yet added**. Until they are, the frontend must call the API Gateway URL directly and build image URLs against the S3/`processed/` path. This also means the invalidation Lambda's cache-warming step is a no-op for `/api/*` until the behavior exists.
-- **No API Gateway CORS.** Fine for same-origin serving through CloudFront (the intended setup), but a direct browser call to the API Gateway URL from another origin will be blocked. Server-side/curl calls are unaffected.
+All paths are served same-origin through CloudFront:
+
+| Path | Origin | Cache |
+|---|---|---|
+| Default (`/*`) | S3 `static/` | Long (optimized) |
+| `/api/projects*` | API Gateway | 24h, invalidated on project write |
+| `/api/leaderboard*` | API Gateway | No cache |
+| `/api/images*` | API Gateway | No cache |
+| `/images/*` | S3 `processed/` | Long (optimized) |
+
+No CORS needed — all API calls are same-origin from the frontend's perspective.

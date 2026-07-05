@@ -4,21 +4,14 @@ REST API for portfolio_v3. Public reads are unauthenticated; writes require a Co
 
 ## Base URL
 
-The frontend is intended to call the API **same-origin** through CloudFront:
+All API calls are same-origin through CloudFront:
 
 ```
-/api/projects
+https://v3-test.konarobinson.com/api/projects
+https://v3-test.konarobinson.com/api/leaderboard
 ```
 
-Until CloudFront `/api/*` routing is wired (see the README's "not yet implemented"), call the API Gateway URL directly. Note the stage is also named `api`, so the path segment appears twice:
-
-```
-https://<api-id>.execute-api.eu-west-2.amazonaws.com/api/api/projects
-                                                      ^^^  ^^^
-                                                    stage  resource
-```
-
-Find `<api-id>` in the API Gateway console or from the CDK deploy output. Test currently: `6ryxwkcdx0`.
+No CORS configuration needed — the frontend and API share the same domain.
 
 ## Authentication
 

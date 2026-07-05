@@ -10,15 +10,16 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-// Shared state — initialised once at cold start, reused across invocations.
 var (
-	tableName = os.Getenv("TABLE_NAME")
-	dbClient  *dynamodb.Client
+	tableName  = os.Getenv("TABLE_NAME")
+	bucketName = os.Getenv("BUCKET_NAME")
+	dbClient   *dynamodb.Client
+	s3Client   *s3.Client
 )
 
-// handler routes the request to the correct method handler.
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	switch request.HTTPMethod {
 	case "POST":
@@ -32,7 +33,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 }
 
-// jsonResponse is a helper that serialises any value to a JSON API Gateway response.
 func jsonResponse(statusCode int, body interface{}) (events.APIGatewayProxyResponse, error) {
 	b, _ := json.Marshal(body)
 	return events.APIGatewayProxyResponse{
@@ -42,12 +42,12 @@ func jsonResponse(statusCode int, body interface{}) (events.APIGatewayProxyRespo
 	}, nil
 }
 
-// main initialises the AWS SDK client and starts the Lambda handler loop.
 func main() {
 	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		panic(fmt.Sprintf("unable to load AWS config: %v", err))
 	}
 	dbClient = dynamodb.NewFromConfig(cfg)
+	s3Client = s3.NewFromConfig(cfg)
 	lambda.Start(handler)
 }

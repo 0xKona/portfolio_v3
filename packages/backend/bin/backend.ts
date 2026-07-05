@@ -35,4 +35,5 @@ new FrontendStack(app, "FrontendStack", {
   domainName,
   hostedZoneDomain,
   imageProcessingFn: backend.imagePipeline.processingFn,
+  api: backend.apiGateway.api,
 });
