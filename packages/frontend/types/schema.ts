@@ -13,6 +13,7 @@ export interface Project {
   demoUrl: string | null;
   isFeatured: boolean;
   status: ProjectStatus;
+  imageCount: number;
   readonly createdAt: string;
   readonly updatedAt: string;
 }

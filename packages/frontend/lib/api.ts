@@ -145,6 +145,8 @@ export async function getImageStatus(
 export function getProjectImageUrl(
   projectId: string,
   variant: "thumbnail" | "optimised" | "original" = "thumbnail",
+  index?: number,
 ): string {
-  return `/images/${projectId}/${variant}.jpg`;
+  const suffix = index != null && index > 0 ? `-${index}` : "";
+  return `/images/${projectId}/${variant}${suffix}.jpg`;
 }
