@@ -20,33 +20,47 @@ function Heading({ level, text }: { level: 1 | 2 | 3; text: string }) {
   }
 }
 
+async function renderFiglet(text: string): Promise<string[]> {
+  try {
+    const figlet = await import("figlet");
+    const font = await import("figlet/importable-fonts/ANSI Shadow.js");
+    figlet.default.parseFont("ANSI Shadow", font.default);
+    const result = figlet.default.textSync(text, {
+      font: "ANSI Shadow",
+      horizontalLayout: "fitted",
+      verticalLayout: "fitted",
+    });
+    return result.split("\n");
+  } catch {
+    return [text];
+  }
+}
+
 export function AsciiTitle({ text, level = 1, className = "" }: AsciiTitleProps) {
   const [lines, setLines] = useState<string[] | null>(null);
 
   useEffect(() => {
     async function render() {
-      try {
-        const figlet = await import("figlet");
-        const font = await import("figlet/importable-fonts/ANSI Shadow.js");
-        figlet.default.parseFont("ANSI Shadow", font.default);
-        const result = figlet.default.textSync(text, {
-          font: "ANSI Shadow",
-          horizontalLayout: "fitted",
-          verticalLayout: "fitted",
-        });
-        setLines(result.split("\n"));
-      } catch {
-        setLines([text]);
+      // Split by newline to render each word/line separately (stacked)
+      const parts = text.split("\n").filter(Boolean);
+      const allLines: string[] = [];
+
+      for (const part of parts) {
+        const rendered = await renderFiglet(part);
+        if (allLines.length > 0) allLines.push("");
+        allLines.push(...rendered);
       }
+
+      setLines(allLines);
     }
     render();
   }, [text]);
 
   return (
-    <div className={className}>
-      <Heading level={level} text={text} />
+    <div className={`overflow-hidden w-full ${className}`}>
+      <Heading level={level} text={text.replace("\n", " ")} />
       <pre
-        className="text-neutral-300 text-[6px] leading-none select-none sm:text-xs md:text-sm lg:text-base mx-auto w-fit"
+        className="text-neutral-300 text-[8px] leading-none select-none sm:text-sm md:text-lg lg:text-xl xl:text-2xl mx-auto w-fit text-center"
         aria-hidden="true"
       >
         {lines ? lines.join("\n") : text}
