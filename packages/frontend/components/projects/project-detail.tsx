@@ -19,8 +19,40 @@ export function ProjectDetail() {
 
   if (isLoading || id === null) {
     return (
-      <main className="min-h-screen flex items-center justify-center pt-20 pb-12">
-        <TerminalLoading message="loading project..." />
+      <main className="min-h-screen pt-20 pb-12">
+        <div className="mb-6">
+          <BackLink href="/projects" label="back to projects" />
+        </div>
+
+        {/* Header skeleton */}
+        <header className="mb-8 border-b border-neutral-800 pb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-3 w-16 bg-neutral-800 animate-pulse" />
+          </div>
+          <div className="h-7 w-64 bg-neutral-800 animate-pulse mb-2" />
+          <div className="h-4 w-96 max-w-full bg-neutral-800 animate-pulse" />
+        </header>
+
+        {/* Content grid skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="border border-neutral-700 aspect-video bg-neutral-900 animate-pulse" />
+          </div>
+          <div className="space-y-6">
+            <div className="border border-neutral-800 p-4">
+              <div className="h-3 w-20 bg-neutral-800 animate-pulse mb-3" />
+              <div className="flex flex-wrap gap-2">
+                <div className="h-6 w-20 bg-neutral-800 animate-pulse" />
+                <div className="h-6 w-16 bg-neutral-800 animate-pulse" />
+                <div className="h-6 w-24 bg-neutral-800 animate-pulse" />
+              </div>
+            </div>
+            <div className="border border-neutral-800 p-4">
+              <div className="h-3 w-16 bg-neutral-800 animate-pulse mb-3" />
+              <div className="h-4 w-32 bg-neutral-800 animate-pulse" />
+            </div>
+          </div>
+        </div>
       </main>
     );
   }
