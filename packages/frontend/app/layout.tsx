@@ -4,6 +4,10 @@ import "./globals.css";
 import { MainNavBar } from "@/components/navigation/main-nav-bar";
 import { Footer } from "@/components/navigation/footer";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { TerminalProvider } from "@/components/terminal/terminal-provider";
+import { TerminalTrigger } from "@/components/terminal/terminal-trigger";
+import { TerminalPanel } from "@/components/terminal/terminal-panel";
+import { TerminalGameModal } from "@/components/terminal/terminal-game-modal";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -58,11 +62,16 @@ export default function RootLayout({
         className={`${jetbrainsMono.variable} min-h-dvh font-mono bg-black text-neutral-300 antialiased flex flex-col`}
       >
         <AuthProvider>
-          <MainNavBar />
-          <div className="max-w-7xl mx-auto px-4 flex-1 w-full">
-            {children}
-          </div>
-          <Footer />
+          <TerminalProvider>
+            <MainNavBar />
+            <div className="max-w-7xl mx-auto px-4 flex-1 w-full">
+              {children}
+            </div>
+            <Footer />
+            <TerminalTrigger />
+            <TerminalPanel />
+            <TerminalGameModal />
+          </TerminalProvider>
         </AuthProvider>
       </body>
     </html>
