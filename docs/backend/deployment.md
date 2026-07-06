@@ -30,8 +30,16 @@ Selected via CDK context `stage`, defaulting to `test`.
 Root scripts build the frontend first, then deploy all three stacks:
 
 ```bash
-npm run deploy:test     # test
-npm run deploy:prod     # prod
+npm run deploy:test     # test (all stacks)
+npm run deploy:prod     # prod (all stacks)
+```
+
+For **frontend-only** deploys (faster — skips BackendStack/CertificateStack, only syncs
+the static export to S3 and invalidates CloudFront):
+
+```bash
+npm run deploy:frontend:test
+npm run deploy:frontend:prod
 ```
 
 Under the hood (from `packages/backend`):

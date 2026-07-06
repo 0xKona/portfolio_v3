@@ -296,9 +296,9 @@ Once CloudFront `/images/*` routing is in place, reference them same-origin:
 **Frontend URL builder:**
 
 ```ts
-getProjectImageUrl(projectId, imageId, "thumbnail")  → /images/<projectId>/<imageId>-thumbnail.jpg
-getProjectImageUrl(projectId, imageId, "optimised")  → /images/<projectId>/<imageId>-optimised.jpg
-getProjectImageUrl(projectId, imageId, "original")   → /images/<projectId>/<imageId>-original.jpg
+getProjectImageUrl(projectId, "thumbnail", imageId)  → /images/<projectId>/<imageId>-thumbnail.jpg
+getProjectImageUrl(projectId, "optimised", imageId)  → /images/<projectId>/<imageId>-optimised.jpg
+getProjectImageUrl(projectId, "original", imageId)   → /images/<projectId>/<imageId>-original.jpg
 ```
 
 The `images` array on the project record defines **display order** — the first element is the hero/thumbnail shown in listings. Iterate the array to render all images in the correct order.

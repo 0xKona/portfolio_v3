@@ -24,7 +24,7 @@ FrontendStack     → CertificateStack + BackendStack
 |---|---|---|
 | `BackendStack` | `eu-west-2` | DynamoDB, Cognito, API Gateway, all Lambdas, EventBridge Pipe + Rule, SQS DLQ, SSM params |
 | `CertificateStack` | `us-east-1` | ACM certificate (DNS-validated, required in us-east-1 for CloudFront) |
-| `FrontendStack` | `eu-west-2` | S3 bucket, CloudFront distribution, OAC, Route 53 alias, static site deployment |
+| `FrontendStack` | `eu-west-2` | S3 bucket, CloudFront distribution, OAC, CloudFront Functions (routing + image path), Route 53 alias, static site deployment |
 
 ## What's in the backend
 
