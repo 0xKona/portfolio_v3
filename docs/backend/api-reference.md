@@ -279,7 +279,7 @@ After processing, three JPEG variants exist under `processed/<projectId>/` per i
 
 | Variant | Filename pattern | Max width | Quality |
 |---|---|---|---|
-| thumbnail | `<imageId>-thumbnail.jpg` | 400px | 80 |
+| thumbnail | `<imageId>-thumbnail.jpg` | 800px | 80 |
 | optimised | `<imageId>-optimised.jpg` | 1200px | 90 |
 | original | `<imageId>-original.jpg` | full | 95 |
 

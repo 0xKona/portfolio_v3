@@ -25,7 +25,7 @@ type Variant struct {
 }
 
 var variants = []Variant{
-	{Name: "thumbnail", Width: 400, Quality: 80},
+	{Name: "thumbnail", Width: 800, Quality: 80},
 	{Name: "optimised", Width: 1200, Quality: 90},
 	{Name: "original", Width: 0, Quality: 95},
 }
