@@ -52,4 +52,27 @@ export const CONTENT = {
     title: "MY PROJECTS",
     command: "$ ls ~/projects --all",
   },
+  about: {
+    bio: {
+      heading: "ABOUT ME",
+      command: "$ cat about.txt",
+      paragraphs: [
+        "I'm Connor, a 3rd year degree apprentice in the UK specializing in TypeScript and AWS cloud development.",
+        "I build full stack web applications using React and AWS cloud architecture, with additional experience in React Native mobile development.",
+        "I also enjoy tinkering and learning new languages.",
+      ],
+    },
+    skills: {
+      heading: "SKILLS",
+      additionalDisclaimer: "I don't use these regularly but have some experience",
+    },
+    contact: {
+      heading: "GET IN TOUCH",
+      command: "$ cat contact.txt",
+      intro: "Feel free to reach out!",
+    },
+    gameTrigger: {
+      label: "That's it! Might as well play a mini-game",
+    },
+  },
 } as const;

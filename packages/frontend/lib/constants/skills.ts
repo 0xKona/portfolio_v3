@@ -8,6 +8,7 @@ import {
   FaJs,
   FaTerminal,
   FaLaptopCode,
+  FaJava,
 } from "react-icons/fa6";
 import {
   SiNextdotjs,
@@ -49,6 +50,7 @@ export const SKILL_ICONS: Record<string, IconType> = {
   python: FaPython,
   "kiro-cli": FaTerminal,
   "kiro-ide": FaLaptopCode,
+  java: FaJava
 };
 
 // ---------------------------------------------------------------------------
