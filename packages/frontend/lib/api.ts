@@ -74,6 +74,10 @@ export async function getProjects(): Promise<Project[]> {
   return apiFetch<Project[]>("/projects");
 }
 
+export async function getAllProjects(token: string): Promise<Project[]> {
+  return authFetch<Project[]>("/projects/all", token);
+}
+
 export async function getProject(id: string): Promise<Project> {
   return apiFetch<Project>(`/projects/${id}`);
 }

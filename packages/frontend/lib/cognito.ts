@@ -6,19 +6,28 @@ import {
   fetchAuthSession,
   getCurrentUser,
 } from "aws-amplify/auth";
+import { getConfig } from "@/lib/config";
 
 // ---------------------------------------------------------------------------
-// Configure Amplify to use our existing Cognito User Pool
+// Initialization — must be called once before any auth operations.
+// Loads config from /config.json (deployed) or .env.local (local dev).
 // ---------------------------------------------------------------------------
 
-Amplify.configure({
-  Auth: {
-    Cognito: {
-      userPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID!,
-      userPoolClientId: process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID!,
+let initialized = false;
+
+export async function initAuth(): Promise<void> {
+  if (initialized) return;
+  const config = await getConfig();
+  Amplify.configure({
+    Auth: {
+      Cognito: {
+        userPoolId: config.userPoolId,
+        userPoolClientId: config.userPoolClientId,
+      },
     },
-  },
-});
+  });
+  initialized = true;
+}
 
 // ---------------------------------------------------------------------------
 // Types

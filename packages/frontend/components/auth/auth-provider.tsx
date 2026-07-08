@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  initAuth,
   cognitoGetCurrentUser,
   cognitoGetIdToken,
   cognitoSignOut,
@@ -36,16 +37,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthContextValue["status"]>("loading");
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  // On mount, check for existing session
+  // On mount: load runtime config, initialize Amplify, then check session
   useEffect(() => {
-    cognitoGetCurrentUser().then((user) => {
-      if (user) {
-        setUserEmail(user.email);
-        setStatus("authenticated");
-      } else {
-        setStatus("unauthenticated");
-      }
-    });
+    initAuth().then(() =>
+      cognitoGetCurrentUser().then((user) => {
+        if (user) {
+          setUserEmail(user.email);
+          setStatus("authenticated");
+        } else {
+          setStatus("unauthenticated");
+        }
+      }),
+    );
   }, []);
 
   const getToken = useCallback(async (): Promise<string> => {

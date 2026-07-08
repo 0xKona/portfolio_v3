@@ -68,6 +68,7 @@ export class ApiGateway extends Construct {
     const apiResource = this.api.root.addResource("api");
     const projectsResource = apiResource.addResource("projects");
     const projectByIdResource = projectsResource.addResource("{id}");
+    const projectsAllResource = projectsResource.addResource("all");
     const leaderboardResource = apiResource.addResource("leaderboard");
     const imagesResource = apiResource.addResource("images");
     const imageStatusResource = imagesResource
@@ -96,6 +97,34 @@ export class ApiGateway extends Construct {
         },
       }),
       { methodResponses: [{ statusCode: "200" }] }
+    );
+
+    // --- GET /api/projects/all (Cognito auth, includes drafts) ---
+    projectsAllResource.addMethod(
+      "GET",
+      new apigateway.AwsIntegration({
+        service: "dynamodb",
+        action: "Query",
+        options: {
+          credentialsRole: apiRole,
+          requestTemplates: {
+            "application/json": vtl("projects-getall-request.vtl"),
+          },
+          integrationResponses: [
+            {
+              statusCode: "200",
+              responseTemplates: {
+                "application/json": vtl("projects-get-response.vtl"),
+              },
+            },
+          ],
+        },
+      }),
+      {
+        authorizer: this.authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        methodResponses: [{ statusCode: "200" }],
+      }
     );
 
     // --- 3.3: GET /api/projects/{id} (public) ---

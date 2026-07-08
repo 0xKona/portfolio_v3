@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"image"
 	_ "image/gif"
@@ -146,6 +147,8 @@ func upload(ctx context.Context, key string, data []byte) error {
 }
 
 // setImageProcessed sets imageProcessed=true on the project's DynamoDB record.
+// Only updates if the project record already exists — avoids creating phantom
+// records when images are uploaded before the project is saved.
 func setImageProcessed(ctx context.Context, projectId string) error {
 	_, err := dbClient.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(tableName),
@@ -154,10 +157,19 @@ func setImageProcessed(ctx context.Context, projectId string) error {
 			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("PROJECT#%s", projectId)},
 		},
 		UpdateExpression:         aws.String("SET #ip = :true"),
+		ConditionExpression:      aws.String("attribute_exists(PK)"),
 		ExpressionAttributeNames: map[string]string{"#ip": "imageProcessed"},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":true": &types.AttributeValueMemberBOOL{Value: true},
 		},
 	})
-	return err
+	// Ignore ConditionalCheckFailedException — project doesn't exist yet, that's fine.
+	if err != nil {
+		var ccf *types.ConditionalCheckFailedException
+		if errors.As(err, &ccf) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }

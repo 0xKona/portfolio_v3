@@ -40,4 +40,6 @@ new FrontendStack(app, `FrontendStack-${stage}`, {
   hostedZoneDomain,
   imageProcessingFn: backend.imagePipeline.processingFn,
   api: backend.apiGateway.api,
+  userPoolId: backend.auth.userPool.userPoolId,
+  userPoolClientId: backend.auth.userPoolClient.userPoolClientId,
 });

@@ -20,6 +20,8 @@ export interface FrontendStackProps extends cdk.StackProps {
   hostedZoneDomain: string;
   imageProcessingFn?: lambda.IFunction;
   api: apigateway.RestApi;
+  userPoolId: string;
+  userPoolClientId: string;
 }
 
 /** S3 bucket, CloudFront distribution (OAC), DNS alias record, and site deployment. */
@@ -212,9 +214,17 @@ function handler(event) {
       ),
     });
 
+    // Deploy frontend static export + runtime config.json to S3.
+    // Both are in a single BucketDeployment to avoid prune conflicts
+    // (separate deployments race, and the main one's --delete flag
+    // removes config.json if it runs second).
     new s3deploy.BucketDeployment(this, "Deployment", {
       sources: [
         s3deploy.Source.asset(path.join(__dirname, "../../../frontend/out")),
+        s3deploy.Source.jsonData("config.json", {
+          userPoolId: props.userPoolId,
+          userPoolClientId: props.userPoolClientId,
+        }),
       ],
       destinationBucket: bucket,
       destinationKeyPrefix: "static",

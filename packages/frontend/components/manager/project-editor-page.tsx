@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import {
@@ -29,8 +29,14 @@ export function ProjectEditorPage() {
     () => getProject(id!),
   );
 
-  // Generate a stable ID for new projects. Recomputed once id resolves.
-  const [newProjectId] = useState(() => crypto.randomUUID());
+  // Generate a new ID for new projects. Regenerate whenever the user
+  // navigates to /manager/new (id changes to "new"), not just on mount.
+  const [newProjectId, setNewProjectId] = useState(() => crypto.randomUUID());
+  useEffect(() => {
+    if (id === "new") {
+      setNewProjectId(crypto.randomUUID());
+    }
+  }, [id]);
   const projectId = isNew ? newProjectId : (id ?? "");
 
   const handleSave = async (form: ProjectFormData) => {

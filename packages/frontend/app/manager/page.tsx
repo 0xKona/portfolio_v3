@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import { getProjects } from "@/lib/api";
+import { getAllProjects } from "@/lib/api";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { ProjectGrid } from "@/components/projects/project-grid";
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -11,10 +11,13 @@ import type { Project } from "@/types/schema";
 
 export default function ManagerDashboardPage() {
   const router = useRouter();
-  const { userEmail } = useAuth();
+  const { userEmail, getToken } = useAuth();
   const { data: projects, isLoading, error } = useSWR<Project[]>(
     "manager-projects",
-    getProjects,
+    async () => {
+      const token = await getToken();
+      return getAllProjects(token);
+    },
   );
 
   const sorted = [...(projects ?? [])].sort(

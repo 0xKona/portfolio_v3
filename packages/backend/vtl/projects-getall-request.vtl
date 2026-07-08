@@ -1,0 +1,12 @@
+## Query GSI1 for ALL projects (including drafts).
+## Authenticated endpoint for the manager dashboard.
+## ScanIndexForward: false → newest first (GSI1SK is createdAt ISO string).
+{
+  "TableName": "$stageVariables.tableName",
+  "IndexName": "GSI1",
+  "KeyConditionExpression": "GSI1PK = :pk",
+  "ExpressionAttributeValues": {
+    ":pk": { "S": "PROJECT" }
+  },
+  "ScanIndexForward": false
+}
