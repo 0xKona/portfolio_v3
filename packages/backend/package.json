@@ -6,10 +6,10 @@
     "build": "tsc",
     "synth": "cdk synth",
     "diff": "cdk diff",
-    "deploy:test": "cdk deploy --all --context stage=test --require-approval never",
+    "deploy:test": "cdk deploy --all --context stage=test --require-approval never --express",
     "deploy:prod": "cdk deploy --all --context stage=prod --require-approval broadening",
-    "deploy:frontend:test": "cdk deploy FrontendStack --context stage=test --require-approval never",
-    "deploy:frontend:prod": "cdk deploy FrontendStack --context stage=prod --require-approval broadening",
+    "deploy:frontend:test": "cdk deploy FrontendStack-test --context stage=test --require-approval never --express",
+    "deploy:frontend:prod": "cdk deploy FrontendStack-prod --context stage=prod --require-approval broadening",
     "destroy:test": "cdk destroy --all --context stage=test --force",
     "destroy:prod": "cdk destroy --all --context stage=prod --force",
     "test": "jest"
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "22.15.32",
-    "aws-cdk": "2.1128.1",
+    "aws-cdk": "^2.1129.0",
     "ts-node": "10.9.2",
     "typescript": "5.8.3"
   }

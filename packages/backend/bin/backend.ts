@@ -12,23 +12,27 @@ applyTags(app);
 
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION ?? "eu-west-2";
-const domainName = "v3-test.konarobinson.com";
+const stage = app.node.tryGetContext("stage") ?? "test";
+
+const domainName = stage === "prod"
+  ? "konarobinson.com"
+  : "v3-test.konarobinson.com";
 const hostedZoneDomain = "konarobinson.com";
 
-const backend = new BackendStack(app, "BackendStack", {
+const backend = new BackendStack(app, `BackendStack-${stage}`, {
   env: { account, region },
   domainName,
 });
 
 // ACM cert for CloudFront must be in us-east-1.
-const cert = new CertificateStack(app, "CertificateStack", {
+const cert = new CertificateStack(app, `CertificateStack-${stage}`, {
   env: { account, region: "us-east-1" },
   crossRegionReferences: true,
   domainName,
   hostedZoneDomain,
 });
 
-new FrontendStack(app, "FrontendStack", {
+new FrontendStack(app, `FrontendStack-${stage}`, {
   env: { account, region },
   crossRegionReferences: true,
   certificate: cert.certificate,
