@@ -1,6 +1,6 @@
-# Portfolio v3
+# Portfolio Website
 
-Terminal-themed portfolio site for Connor Robinson — a full-stack developer portfolio with a retro terminal aesthetic, project showcase, mini-game, and authenticated admin panel.
+Terminal-themed portfolio site, with a retro terminal aesthetic, project showcase, mini-game, and authenticated admin panel.
 
 ## Tech Stack
 
@@ -14,12 +14,12 @@ Terminal-themed portfolio site for Connor Robinson — a full-stack developer po
 
 ```
 ┌─────────────┐     ┌──────────────────────────────────────────────┐
-│  Browser     │────▶│  CloudFront (CDN)                            │
-│  konarobinson│     │  ├─ /static/*        → S3 (Next.js export)   │
-│  .com        │     │  ├─ /images/*        → S3 processed/        │
-│              │     │  ├─ /api/*           → API Gateway           │
-│              │     │  └─ CF Functions     → URI rewrites          │
-└─────────────┘     └──────────────────────────────────────────────┘
+│  Browser     │───▶│  CloudFront (CDN)                            │
+│  konarobinson│    │  ├─ /static/*        → S3 (Next.js export)   │
+│  .com        │    │  ├─ /images/*        → S3 processed/         │
+│              │    │  ├─ /api/*           → API Gateway           │
+│              │    │  └─ CF Functions     → URI rewrites          │
+└──────────────┘    └──────────────────────────────────────────────┘
                               │
                     ┌─────────┴──────────┐
                     ▼                    ▼
