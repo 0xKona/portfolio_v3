@@ -74,7 +74,9 @@ All paths are served same-origin through CloudFront:
 | Path | Origin | Cache |
 |---|---|---|
 | Default (`/*`) | S3 `static/` | Long (optimized) |
-| `/api/projects*` | API Gateway | 24h, invalidated on project write |
+| `/api/projects` | API Gateway | 24h, invalidated on project write |
+| `/api/projects/all*` | API Gateway | No cache (authenticated manager listing) |
+| `/api/projects/*` | API Gateway | 24h, invalidated on project write |
 | `/api/leaderboard*` | API Gateway | No cache |
 | `/api/images*` | API Gateway | No cache |
 | `/images/*` | S3 `processed/` | Long (optimized) |
