@@ -1,6 +1,6 @@
-# Portfolio v3
+# Portfolio Website
 
-Terminal-themed portfolio site for Connor Robinson — a full-stack developer portfolio with a retro terminal aesthetic, project showcase, mini-game, and authenticated admin panel.
+Terminal-themed portfolio site, with a retro terminal aesthetic, project showcase, mini-game, and authenticated admin panel.
 
 ## Tech Stack
 
