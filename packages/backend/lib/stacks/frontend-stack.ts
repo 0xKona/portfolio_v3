@@ -137,6 +137,13 @@ function handler(event) {
       `),
     });
 
+    const projectsCachePolicy = new cloudfront.CachePolicy(this, "ProjectsCachePolicy", {
+      cachePolicyName: resourceName(this, "projects-cache"),
+      defaultTtl: cdk.Duration.hours(24),
+      maxTtl: cdk.Duration.days(7),
+      minTtl: cdk.Duration.seconds(0),
+    });
+
     const distribution = new cloudfront.Distribution(this, "Distribution", {
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(bucket, {
@@ -152,15 +159,28 @@ function handler(event) {
         ],
       },
       additionalBehaviors: {
-        "/api/projects*": {
+        // Public list endpoint only. Keep this cacheable for fast homepage/projects reads.
+        "/api/projects": {
           origin: new origins.RestApiOrigin(props.api),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: new cloudfront.CachePolicy(this, "ProjectsCachePolicy", {
-            cachePolicyName: resourceName(this, "projects-cache"),
-            defaultTtl: cdk.Duration.hours(24),
-            maxTtl: cdk.Duration.days(7),
-            minTtl: cdk.Duration.seconds(0),
-          }),
+          cachePolicy: projectsCachePolicy,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
+        // Authenticated manager listing. Disable cache to avoid replaying auth responses.
+        "/api/projects/all*": {
+          origin: new origins.RestApiOrigin(props.api),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
+        // Public project detail reads and authenticated project mutations share this path space.
+        // This stays cacheable because project writes trigger CloudFront invalidation.
+        "/api/projects/*": {
+          origin: new origins.RestApiOrigin(props.api),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: projectsCachePolicy,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
         },
@@ -230,6 +250,9 @@ function handler(event) {
       destinationKeyPrefix: "static",
       distribution,
       distributionPaths: ["/*"],
+
+      // Helps a lot with many small files
+      memoryLimit: 1024,
     });
 
     // Export distribution ID to SSM for the invalidation Lambda to read.
