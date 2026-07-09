@@ -102,7 +102,9 @@ import {
   FaYarn,
 } from "react-icons/fa6";
 import {
+  SiClaude,
   SiCplusplus,
+  SiDocker,
   SiGraphql,
   SiMysql,
   SiNextdotjs,
@@ -178,6 +180,7 @@ export const SKILL_ICONS = {
   /** Cloud Providers */
   aws: FaAws,
   amazon: FaAws,
+  docker: SiDocker,
   google: FaGoogle,
   gcp: FaGoogle,
   microsoft: FaMicrosoft,
@@ -283,6 +286,8 @@ export const SKILL_ICONS = {
   "kiro-cli": FaTerminal,
   "kiro-ide": FaLaptopCode,
   "github-copilot": FaRobot,
+  claude: SiClaude,
+  "agentic-ai": FaRobot,
 
   /** AI & Data */
   robot: FaRobot,
@@ -319,14 +324,14 @@ export const CORE_SKILLS: SkillKey[] = [
   "typescript",
   "react",
   "nextjs",
-  "nodejs",
   "aws",
   "aws-amplify",
+  "golang",
+  "python",
+  "nodejs",
   "tailwindcss",
-  "kiro-cli",
-  "kiro-ide",
-  "graphql",
-  "mysql",
+  "agentic-ai",
+  "docker",
   "aws-lambda",
 ];
 
