@@ -14,7 +14,20 @@ import { useUrlId } from "@/lib/hooks/use-url-id";
 import { BackLink } from "@/components/navigation/back-link";
 import { ProjectEditor, type ProjectFormData } from "@/components/manager/project-editor";
 import { TerminalLoading } from "@/components/ui";
-import type { Project, CreateProjectInput, UpdateProjectInput } from "@/types/schema";
+import type {
+  Project,
+  DemoCredential,
+  CreateProjectInput,
+  UpdateProjectInput,
+} from "@/types/schema";
+
+// Drop fully-blank credential rows so "none" is a valid state. Rows with any
+// filled field are kept so the backend's field validation can flag them.
+function cleanCredentials(credentials: DemoCredential[]): DemoCredential[] {
+  return credentials.filter(
+    (c) => c.name !== "" || c.user !== "" || c.pass !== "",
+  );
+}
 
 export function ProjectEditorPage() {
   const id = useUrlId("manager");
@@ -50,6 +63,7 @@ export function ProjectEditorPage() {
         desc: form.desc || undefined,
         githubUrl: form.githubUrl || undefined,
         demoUrl: form.demoUrl || undefined,
+        credentials: cleanCredentials(form.credentials),
       };
       await createProject(token, input);
 
@@ -71,6 +85,7 @@ export function ProjectEditorPage() {
         isFeatured: form.isFeatured,
         status: form.status,
         images: form.images,
+        credentials: cleanCredentials(form.credentials),
       };
       await updateProject(token, projectId, input);
     }
@@ -136,6 +151,7 @@ export function ProjectEditorPage() {
         isFeatured: project.isFeatured,
         status: project.status,
         images: project.images ?? [],
+        credentials: project.credentials ?? [],
       }
     : undefined;
 

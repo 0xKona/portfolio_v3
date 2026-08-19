@@ -4,6 +4,13 @@
 
 export type ProjectStatus = "published" | "draft";
 
+export interface DemoCredential {
+  name: string;
+  desc: string | null;
+  user: string;
+  pass: string;
+}
+
 export interface Project {
   readonly id: string;
   name: string;
@@ -14,6 +21,7 @@ export interface Project {
   isFeatured: boolean;
   status: ProjectStatus;
   images: string[];
+  credentials: DemoCredential[];
   readonly createdAt: string;
   readonly updatedAt: string;
 }
@@ -25,6 +33,7 @@ export interface CreateProjectInput {
   desc?: string | null;
   githubUrl?: string | null;
   demoUrl?: string | null;
+  credentials?: DemoCredential[];
 }
 
 export interface UpdateProjectInput {
@@ -36,6 +45,7 @@ export interface UpdateProjectInput {
   isFeatured?: boolean;
   status?: ProjectStatus;
   images?: string[];
+  credentials?: DemoCredential[];
 }
 
 // ---------------------------------------------------------------------------

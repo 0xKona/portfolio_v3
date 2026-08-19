@@ -9,20 +9,22 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 // UpdateProjectRequest contains all updatable fields. Nil means "don't update".
 type UpdateProjectRequest struct {
-	Name       *string  `json:"name"`
-	Desc       *string  `json:"desc"`
-	Skills     []string `json:"skills"`
-	GithubUrl  *string  `json:"githubUrl"`
-	DemoUrl    *string  `json:"demoUrl"`
-	IsFeatured *bool    `json:"isFeatured"`
-	Status     *string  `json:"status"`
-	Images     []string `json:"images"`
+	Name        *string      `json:"name"`
+	Desc        *string      `json:"desc"`
+	Skills      []string     `json:"skills"`
+	GithubUrl   *string      `json:"githubUrl"`
+	DemoUrl     *string      `json:"demoUrl"`
+	IsFeatured  *bool        `json:"isFeatured"`
+	Status      *string      `json:"status"`
+	Images      []string     `json:"images"`
+	Credentials []Credential `json:"credentials"`
 }
 
 func handleUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -98,6 +100,20 @@ func handleUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (e
 		}
 		exprValues[":images"] = &types.AttributeValueMemberL{Value: imagesList}
 		setClauses = append(setClauses, "#images = :images")
+	}
+
+	if req.Credentials != nil {
+		exprNames["#credentials"] = "credentials"
+		credsList := make([]types.AttributeValue, len(req.Credentials))
+		for i, cred := range req.Credentials {
+			m, err := attributevalue.MarshalMap(cred)
+			if err != nil {
+				return jsonResponse(500, map[string]string{"message": "failed to marshal credentials"})
+			}
+			credsList[i] = &types.AttributeValueMemberM{Value: m}
+		}
+		exprValues[":credentials"] = &types.AttributeValueMemberL{Value: credsList}
+		setClauses = append(setClauses, "#credentials = :credentials")
 	}
 
 	// "status" is a DynamoDB reserved word — must use expression name alias.
@@ -190,17 +206,18 @@ func handleUpdate(ctx context.Context, request events.APIGatewayProxyRequest) (e
 
 	// Return the updated project from the ALL_NEW response.
 	return jsonResponse(200, map[string]interface{}{
-		"id":         getString(result.Attributes, "id"),
-		"name":       getString(result.Attributes, "name"),
-		"desc":       getStringPtr(result.Attributes, "desc"),
-		"skills":     getStringList(result.Attributes, "skills"),
-		"githubUrl":  getStringPtr(result.Attributes, "githubUrl"),
-		"demoUrl":    getStringPtr(result.Attributes, "demoUrl"),
-		"isFeatured": getBool(result.Attributes, "isFeatured"),
-		"status":     getString(result.Attributes, "status"),
-		"images":     getStringList(result.Attributes, "images"),
-		"createdAt":  getString(result.Attributes, "createdAt"),
-		"updatedAt":  getString(result.Attributes, "updatedAt"),
+		"id":          getString(result.Attributes, "id"),
+		"name":        getString(result.Attributes, "name"),
+		"desc":        getStringPtr(result.Attributes, "desc"),
+		"skills":      getStringList(result.Attributes, "skills"),
+		"githubUrl":   getStringPtr(result.Attributes, "githubUrl"),
+		"demoUrl":     getStringPtr(result.Attributes, "demoUrl"),
+		"isFeatured":  getBool(result.Attributes, "isFeatured"),
+		"status":      getString(result.Attributes, "status"),
+		"images":      getStringList(result.Attributes, "images"),
+		"credentials": getCredentialList(result.Attributes, "credentials"),
+		"createdAt":   getString(result.Attributes, "createdAt"),
+		"updatedAt":   getString(result.Attributes, "updatedAt"),
 	})
 }
 
@@ -260,5 +277,28 @@ func getStringList(item map[string]types.AttributeValue, key string) []string {
 		}
 	}
 	return []string{}
+}
+
+// Helper: extract a list of credentials from a DynamoDB L attribute of M values.
+func getCredentialList(item map[string]types.AttributeValue, key string) []Credential {
+	if v, ok := item[key]; ok {
+		if l, ok := v.(*types.AttributeValueMemberL); ok {
+			result := make([]Credential, 0, len(l.Value))
+			for _, av := range l.Value {
+				m, ok := av.(*types.AttributeValueMemberM)
+				if !ok {
+					continue
+				}
+				result = append(result, Credential{
+					Name: getString(m.Value, "name"),
+					Desc: getStringPtr(m.Value, "desc"),
+					User: getString(m.Value, "user"),
+					Pass: getString(m.Value, "pass"),
+				})
+			}
+			return result
+		}
+	}
+	return []Credential{}
 }
 
