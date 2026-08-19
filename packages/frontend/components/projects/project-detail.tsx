@@ -6,7 +6,6 @@ import { useUrlId } from "@/lib/hooks/use-url-id";
 import { BackLink } from "@/components/navigation/back-link";
 import { ImageCarousel } from "@/components/projects/image-carousel";
 import { SkillBadge } from "@/components/ui/skill-badge";
-import { TerminalLoading } from "@/components/ui";
 import type { Project } from "@/types/schema";
 
 export function ProjectDetail() {
@@ -165,6 +164,39 @@ export function ProjectDetail() {
                     live demo
                   </a>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Demo credentials */}
+          {project.credentials.length > 0 && (
+            <div className="border border-neutral-800 p-4">
+              <h2 className="text-neutral-500 text-xs font-mono mb-3">
+                demo credentials
+              </h2>
+              <div className="space-y-4">
+                {project.credentials.map((cred, index) => (
+                  <div key={index} className="space-y-1">
+                    <p className="text-sm font-mono text-neutral-300">
+                      {cred.name}
+                    </p>
+                    {cred.desc && (
+                      <p className="text-xs font-mono text-neutral-600">
+                        {cred.desc}
+                      </p>
+                    )}
+                    <div className="text-xs font-mono text-neutral-500">
+                      <p>
+                        <span className="text-neutral-600">user:</span>{" "}
+                        {cred.user}
+                      </p>
+                      <p>
+                        <span className="text-neutral-600">pass:</span>{" "}
+                        {cred.pass}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

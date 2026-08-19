@@ -18,35 +18,45 @@ import (
 // uuidRegex validates that the client-provided ID is a proper UUID v4 format.
 var uuidRegex = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
+// Credential represents demo login details for a project.
+type Credential struct {
+	Name string  `json:"name" dynamodbav:"name"`
+	Desc *string `json:"desc" dynamodbav:"desc,omitempty"`
+	User string  `json:"user" dynamodbav:"user"`
+	Pass string  `json:"pass" dynamodbav:"pass"`
+}
+
 // CreateProjectRequest is the expected JSON body for POST /api/projects.
 type CreateProjectRequest struct {
-	ID        string   `json:"id"`
-	Name      string   `json:"name"`
-	Desc      *string  `json:"desc"`
-	Skills    []string `json:"skills"`
-	GithubUrl *string  `json:"githubUrl"`
-	DemoUrl   *string  `json:"demoUrl"`
+	ID          string       `json:"id"`
+	Name        string       `json:"name"`
+	Desc        *string      `json:"desc"`
+	Skills      []string     `json:"skills"`
+	GithubUrl   *string      `json:"githubUrl"`
+	DemoUrl     *string      `json:"demoUrl"`
+	Credentials []Credential `json:"credentials"`
 }
 
 // ProjectItem represents the DynamoDB item structure for a project.
 // PK/SK follow the single-table pattern: "PROJECT#<id>".
 // GSI1 enables listing all projects by createdAt.
 type ProjectItem struct {
-	PK         string   `dynamodbav:"PK"`
-	SK         string   `dynamodbav:"SK"`
-	GSI1PK     string   `dynamodbav:"GSI1PK"`
-	GSI1SK     string   `dynamodbav:"GSI1SK"`
-	ID         string   `dynamodbav:"id"`
-	Name       string   `dynamodbav:"name"`
-	Desc       *string  `dynamodbav:"desc,omitempty"`
-	Skills     []string `dynamodbav:"skills"`
-	GithubUrl  *string  `dynamodbav:"githubUrl,omitempty"`
-	DemoUrl    *string  `dynamodbav:"demoUrl,omitempty"`
-	IsFeatured bool     `dynamodbav:"isFeatured"`
-	Status     string   `dynamodbav:"status"`
-	Images     []string `dynamodbav:"images"`
-	CreatedAt  string   `dynamodbav:"createdAt"`
-	UpdatedAt  string   `dynamodbav:"updatedAt"`
+	PK          string       `dynamodbav:"PK"`
+	SK          string       `dynamodbav:"SK"`
+	GSI1PK      string       `dynamodbav:"GSI1PK"`
+	GSI1SK      string       `dynamodbav:"GSI1SK"`
+	ID          string       `dynamodbav:"id"`
+	Name        string       `dynamodbav:"name"`
+	Desc        *string      `dynamodbav:"desc,omitempty"`
+	Skills      []string     `dynamodbav:"skills"`
+	GithubUrl   *string      `dynamodbav:"githubUrl,omitempty"`
+	DemoUrl     *string      `dynamodbav:"demoUrl,omitempty"`
+	IsFeatured  bool         `dynamodbav:"isFeatured"`
+	Status      string       `dynamodbav:"status"`
+	Images      []string     `dynamodbav:"images"`
+	Credentials []Credential `dynamodbav:"credentials"`
+	CreatedAt   string       `dynamodbav:"createdAt"`
+	UpdatedAt   string       `dynamodbav:"updatedAt"`
 }
 
 func handleCreate(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -63,22 +73,27 @@ func handleCreate(ctx context.Context, request events.APIGatewayProxyRequest) (e
 
 	// Build the DynamoDB item. New projects start as drafts, not featured.
 	now := time.Now().UTC().Format(time.RFC3339)
+	creds := req.Credentials
+	if creds == nil {
+		creds = []Credential{}
+	}
 	item := ProjectItem{
-		PK:         fmt.Sprintf("PROJECT#%s", req.ID),
-		SK:         fmt.Sprintf("PROJECT#%s", req.ID),
-		GSI1PK:     "PROJECT",
-		GSI1SK:     now,
-		ID:         req.ID,
-		Name:       req.Name,
-		Desc:       req.Desc,
-		Skills:     req.Skills,
-		GithubUrl:  req.GithubUrl,
-		DemoUrl:    req.DemoUrl,
-		IsFeatured: false,
-		Status:     "draft",
-		Images:     []string{},
-		CreatedAt:  now,
-		UpdatedAt:  now,
+		PK:          fmt.Sprintf("PROJECT#%s", req.ID),
+		SK:          fmt.Sprintf("PROJECT#%s", req.ID),
+		GSI1PK:      "PROJECT",
+		GSI1SK:      now,
+		ID:          req.ID,
+		Name:        req.Name,
+		Desc:        req.Desc,
+		Skills:      req.Skills,
+		GithubUrl:   req.GithubUrl,
+		DemoUrl:     req.DemoUrl,
+		IsFeatured:  false,
+		Status:      "draft",
+		Images:      []string{},
+		Credentials: creds,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	// Marshal the struct into a DynamoDB attribute value map.
@@ -105,17 +120,18 @@ func handleCreate(ctx context.Context, request events.APIGatewayProxyRequest) (e
 
 	// Return the created project.
 	return jsonResponse(201, map[string]interface{}{
-		"id":         item.ID,
-		"name":       item.Name,
-		"desc":       item.Desc,
-		"skills":     item.Skills,
-		"githubUrl":  item.GithubUrl,
-		"demoUrl":    item.DemoUrl,
-		"isFeatured": item.IsFeatured,
-		"status":     item.Status,
-		"images":     item.Images,
-		"createdAt":  item.CreatedAt,
-		"updatedAt":  item.UpdatedAt,
+		"id":          item.ID,
+		"name":        item.Name,
+		"desc":        item.Desc,
+		"skills":      item.Skills,
+		"githubUrl":   item.GithubUrl,
+		"demoUrl":     item.DemoUrl,
+		"isFeatured":  item.IsFeatured,
+		"status":      item.Status,
+		"images":      item.Images,
+		"credentials": item.Credentials,
+		"createdAt":   item.CreatedAt,
+		"updatedAt":   item.UpdatedAt,
 	})
 }
 
@@ -132,6 +148,11 @@ func validateCreate(req CreateProjectRequest) []string {
 	}
 	if len(req.Skills) == 0 {
 		errs = append(errs, "skills must be a non-empty array")
+	}
+	for i, c := range req.Credentials {
+		if c.Name == "" || c.User == "" || c.Pass == "" {
+			errs = append(errs, fmt.Sprintf("credentials[%d] must have name, user and pass", i))
+		}
 	}
 	return errs
 }

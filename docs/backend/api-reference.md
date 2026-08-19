@@ -61,6 +61,14 @@ Obtain the token client-side via Amplify Auth / Cognito SRP against the User Poo
   "isFeatured": false,                          // boolean
   "status": "published",                        // "published" | "draft"
   "images": ["abc123", "def456", "ghi789"],      // string[], ordered image IDs (display order)
+  "credentials": [                               // demo login details, string[]
+    {
+      "name": "Site Access",
+      "desc": "Required to access site",        // string | null
+      "user": "testing",
+      "pass": "testing"
+    }
+  ],
   "createdAt": "2026-07-03T18:22:30Z",          // immutable
   "updatedAt": "2026-07-03T18:22:30Z"
 }
@@ -70,6 +78,7 @@ Notes:
 - **Public GETs only return `status: "published"` projects.** Drafts are filtered out server-side.
 - **Featured** projects (published + `isFeatured: true`) are indexed separately for a "featured" query.
 - **`images`** is an ordered array of image IDs. The array order defines display order in the frontend (first element = hero/thumbnail). Defaults to `[]` for projects with no images. Use these IDs to build image URLs (see [Images](#images)).
+- **`credentials`** is a list of demo login details shown on the public project page. Defaults to `[]`. Each entry requires `name`, `user`, and `pass` (non-empty); `desc` is optional. Note credentials are public — they appear in unauthenticated responses.
 
 ### GET /api/projects
 
@@ -100,7 +109,8 @@ Request:
   "skills": ["Go"],                              // required, non-empty
   "desc": "…",                                   // optional
   "githubUrl": "…",                              // optional
-  "demoUrl": "…"                                 // optional
+  "demoUrl": "…",                                // optional
+  "credentials": []                              // optional, each entry needs name/user/pass
 }
 ```
 
@@ -126,7 +136,8 @@ Partial update — include only the fields you want to change. Any field omitted
   "demoUrl": "…",
   "isFeatured": true,
   "status": "published",
-  "images": ["abc123", "def456", "ghi789"]
+  "images": ["abc123", "def456", "ghi789"],
+  "credentials": []     // optional — omit to leave unchanged, pass [] to clear
 }
 ```
 

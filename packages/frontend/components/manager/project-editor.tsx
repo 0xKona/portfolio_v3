@@ -10,7 +10,8 @@ import {
 } from "@/components/ui";
 import { SkillPicker } from "@/components/manager/skill-picker";
 import { ImageUploader } from "@/components/manager/image-uploader";
-import type { ProjectStatus } from "@/types/schema";
+import { CredentialEditor } from "@/components/manager/credential-editor";
+import type { ProjectStatus, DemoCredential } from "@/types/schema";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,6 +26,7 @@ export interface ProjectFormData {
   isFeatured: boolean;
   status: ProjectStatus;
   images: string[];
+  credentials: DemoCredential[];
 }
 
 const EMPTY_FORM: ProjectFormData = {
@@ -36,6 +38,7 @@ const EMPTY_FORM: ProjectFormData = {
   isFeatured: false,
   status: "draft",
   images: [],
+  credentials: [],
 };
 
 // ---------------------------------------------------------------------------
@@ -169,6 +172,12 @@ export function ProjectEditor({
           type="url"
         />
       </div>
+
+      {/* Demo credentials */}
+      <CredentialEditor
+        credentials={form.credentials}
+        onChange={(credentials) => updateField("credentials", credentials)}
+      />
 
       {/* Action bar */}
       <div className="flex gap-3 pt-4 border-t border-neutral-800">
